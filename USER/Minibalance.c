@@ -66,7 +66,7 @@ int main(void)
 				}
 				CAN1_SEND();                //CAN发送	
 				PS2_Receive();            //PS2接收
-				USART_TX();                //串口发送
+				//USART_TX();                //串口发送
 				delay_flag=1;	
 				delay_50=0;
 				while(delay_flag);	       //通过MPU6050的INT中断实现的50ms精准延时				

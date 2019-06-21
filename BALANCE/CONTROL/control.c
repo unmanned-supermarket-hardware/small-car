@@ -323,15 +323,29 @@ int Position_PID_C (int Encoder,int Target)
 函数功能：通过串口指令对小车进行遥控
 入口参数：串口指令
 返回  值：无
+当前版本说明：转90°自动停止
 **************************************************************************/
-float V_sum = 300;  // 当前的速度，单位 先定位 mm/s
+#define STOP 0
+#define MOVING_STRAIGHT 1
+#define TURNING 2
 
+float V_sum = 300;  // 当前的速度，单位  mm/s
+u8 state_flag = 0;    //目前状态，有STOP，MOVING_STRAIGHT，TURNING 三种取值
+u8 last_state_flag = 0;
+u8 last_flag_direction = 0;
+//-------------------------
 void Get_RC(u8 mode)
 {
 	float step=0.25;  //设置速度控制步进值。
-	int angle = Yaw;  // 传感器测的偏角
+	int yaw = Yaw;  // 传感器测的偏角
+	int angle = Yaw;
+	int pitch = Pitch;
+	int roll = Roll;
 	u8 Flag_Move=1;
-	float R_gui = 400;  // 轨道 mm
+	float R_vehicle = 310;  //小车半径，单位：mm
+	float R_gui = 400;  // 轨道半径，单位：mm
+	
+	char strTemp[64];
 	  if(mode==0)//速度
 		{	
 
@@ -339,34 +353,53 @@ void Get_RC(u8 mode)
 			 {
 				 case 1:  Move_X=0;           Move_Y=V_sum;  Flag_Move=1;               break;
 				 case 2:  
-
-						//V_sum = 300;
-				 /*
-						// 将 速度分解到  绝对坐标系（无人超市）				 
-						Move_X=V_sum*cos((angle+180)*PI/180);
-						Move_Y=V_sum*sin((angle+180)*PI/180);
-						Move_Z=V_sum/1.2;   // 小车自转的  速度  ，后期需要我们调试，单位是  速度单位     mm/s非脉冲频率
-
-						//绝对坐标系  转 相对坐标系（小车）
-						Move_X=Move_X*cos(angle*PI/180)+Move_Y*sin(angle*PI/180);
-						Move_Y=Move_Y*cos(angle*PI/180)-Move_X*sin(angle*PI/180);
-				*/
-
-				//  小车的半径   310mm
-						Move_X = -300;
+						Move_X = -V_sum;
 					 	Move_Y = 0;	
-						Move_Z = (310/R_gui)*(-Move_X);	
+						Move_Z = (R_vehicle/R_gui)*(-Move_X);	
 						Flag_Move=1;
-						
+						state_flag = TURNING;
+						//sprintf(strTemp, "case 2	Move_X == %f\r\n",Move_X);
+						//usart1_sendString(strTemp,strlen(strTemp));	
 				 		break;
-						
-				 case 3:  Move_X=V_sum;      	Move_Y=0;		Flag_Move=1;               break;
-				 case 4:  Move_X=0;       		Move_Y=0;		Flag_Move=1;               break;
-				 case 5:  Move_X=0;           	Move_Y=-V_sum;	Flag_Move=1;               break;
-				 case 6:  Move_X=-V_sum;      	Move_Y=-V_sum;	Flag_Move=1;               break;
-				 case 7:  Move_X=-V_sum;      	Move_Y=0;		Flag_Move=1;               break;
-				 case 8:  Move_X=-V_sum;       	Move_Y=V_sum;	Flag_Move=1;               break; 
-				 default: Flag_Move=0;        	Move_X=Move_X/1.5;	Move_Y=Move_Y/1.5;	   break;	   // 缓慢地停止 ，可以设置 急停还是缓停
+				 case 5:  Move_X=0;           Move_Y=0;	 Move_Z = 0;Flag_Move=0; state_flag =STOP;               break;  //stop
+
+				 default: 
+							if(state_flag == TURNING)   //正在转，判断是否转完
+							{
+
+								//debug
+								
+								//顺时针/右转，Yaw--
+								if(angle >-90) //没转完，接着转
+								{
+
+									Move_X = -V_sum;
+									Move_Y = 0;	
+									Move_Z = (R_vehicle/R_gui)*(-Move_X);	
+									Flag_Move=1;
+									state_flag = TURNING;
+									
+								}
+								else
+								{
+									//sprintf(strTemp, "yaw>90\r\n");
+									//usart1_sendString(strTemp,strlen(strTemp));	
+									Move_X = 0;
+									Move_Y=0;
+									Move_Z=0;
+									state_flag = STOP;
+									Flag_Move=0;
+								}
+								
+							}
+//							else
+//							{
+//									Move_X = 0;
+//									Move_Y=0;
+//									Move_Z=0;
+//									state_flag = STOP;
+//									Flag_Move=0;
+//							}
 		     }
 
 
@@ -377,6 +410,11 @@ void Get_RC(u8 mode)
 				else if(Flag_Right==1) Move_Z+=step,Gyro_K=0;    //右自旋		
 				else 		               Move_Z=0,Gyro_K=0.00;    //停止
 			}	
+			sprintf(strTemp, "default	pitch ==%d , roll == %d ,angle == %d\r\n",pitch,roll,angle);
+									usart1_sendString(strTemp,strlen(strTemp));	
+
+			
+			
 				//if(Flag_Move==1)	Flag_Left=0,Flag_Right=0,Move_Z=0;
 
 			/*

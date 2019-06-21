@@ -103,6 +103,21 @@ void usart2_send(u8 data)
 	USART2->DR = data;
 	while((USART2->SR&0x40)==0);	
 }
+
+/**************************实现函数**********************************************
+*功    能:		usart1发送一个字符串
+*********************************************************************************/
+void usart1_sendString(char *data,u8 len)
+{
+	int i=0;
+	for(i=0;i<len;i++)
+	{
+		USART1->DR = data[i];
+		while((USART1->SR&0x40)==0);	
+	}
+	
+}
+
 void uart2_init(u32 pclk2,u32 bound)
 {  	 
 	float temp;
