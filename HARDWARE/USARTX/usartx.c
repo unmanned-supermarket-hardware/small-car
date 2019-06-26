@@ -2,12 +2,25 @@
 #include "usartx.h"
 
 /**************************实现函数**********************************************
-*功    能:		usart4发送一个字节
+*功    能:		usart3发送一个字节
 *********************************************************************************/
 void usart3_send(u8 data)
 {
 	USART3->DR = data;
 	while((USART3->SR&0x40)==0);	
+}
+/**************************实现函数**********************************************
+*功    能:		usart3发送一个字符串
+*********************************************************************************/
+void usart3_sendString(char *data,u8 len)
+{
+	int i=0;
+	for(i=0;i<len;i++)
+	{
+		USART3->DR = data[i];
+		while((USART3->SR&0x40)==0);	
+	}
+	
 }
 /**************************************************************************
 函数功能：串口3初始化
@@ -50,32 +63,65 @@ float temp;
 入口参数：无
 返回  值：无
 **************************************************************************/
+
+#define dD 1
+#define dColon 2
+#define dComma 3
+
+#define oO 1
+#define oEnd 2
+
 int USART3_IRQHandler(void)
 {	
 	if(USART3->SR&(1<<5))//接收到数据
 	{	      
 				u8 temp;
-				static u8 count,last_data,last_last_data,Usart_ON_Count;
-		    if(Usart_ON_Flag==0)
-				{	
-		    if(++Usart_ON_Count>10)Usart_ON_Flag=1;
-				}
+				u8 myBuffer[64];
+				double distance;
+				char strTemp[64];
+				char strDistance[7];
+				static u8 count,last_data,last_last_data,dState,oState,index;
+				//count = last_data = last_last_data = dState = oState = index = 0;
+				//
 				temp=USART3->DR;
-				Show_Data_Mb=temp;
-				   if(Usart_Flag==0)
-						{	
-						if(last_data==0xfe&&last_last_data==0xff) 
-						Usart_Flag=1,count=0;	
-						}
-					 if(Usart_Flag==1)
-						{	
-							Urxbuf[count]=temp;     
-							count++;                
-							if(count==8)Usart_Flag=0;
-						}
-						last_last_data=last_data;
-						last_data=temp;
-   }
+				usart1_send(temp);
+
+				//sprintf(strTemp," %d\r\n",dState);
+				//usart1_sendString(strTemp,strlen(strTemp));
+			
+				switch(dState)
+				{
+					case (0): {if (temp == 'D') dState = dD; break;}    //还没出现'D' ，判断现在是否为‘D’
+					case (dD): {if (temp == ':') {dState = dColon; index =0;}break;}    //上一个是'D'，判断是否出现':'
+					case(dColon):   //已经出现':'，如果下面不是空格就是数字了。
+					{
+							if(temp == 'm')
+							{
+								strDistance[index] = '\0';
+								distance = atof(strDistance);
+								dState = 0;
+								
+								sprintf(strTemp,"\r\n%f\r\n",distance);
+								usart1_sendString(strTemp,strlen(strTemp));
+							}
+							else if(temp!=' ')
+							{
+								strDistance[index] = temp;
+								index++;
+							}
+							break;
+					}
+				}
+				
+				
+		
+				//--------------------------
+				last_data=temp;
+				last_last_data=last_data;
+			
+		}
+			
+   
 return 0;	
 }
 

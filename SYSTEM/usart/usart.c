@@ -71,12 +71,26 @@ int USART1_IRQHandler(void)
 	if(USART1->SR&(1<<5))//接收到数据
 	{	      
 				u8 temp;
+				char strTemp[64];
 					static u8 count,last_data,last_last_data,Usart_ON_Count;
 					if(Usart_ON_Flag==0)
 					{	
 						if(++Usart_ON_Count>10)Usart_ON_Flag=1;
 					}
 					temp=USART1->DR;
+				//------------------------------------
+				sprintf(strTemp,"USART1 收到：%c\r\n",temp);
+				//usart1_sendString(strTemp,strlen(strTemp));
+				printf(strTemp, "串口1收到数据： %c\r\n",temp);
+				if(temp == 'O')
+				{
+					usart3_send('O');
+				}
+				else if(temp =='D')
+				{
+					usart3_send('D');
+				}
+//-------------------------				
 				   if(Usart_Flag==0)
 						{	
 						if(last_data==0xfe&&last_last_data==0xff) 

@@ -411,7 +411,7 @@ void Get_RC(u8 mode)
 				else 		               Move_Z=0,Gyro_K=0.00;    //ֹͣ
 			}	
 			sprintf(strTemp, "default	pitch ==%d , roll == %d ,angle == %d\r\n",pitch,roll,angle);
-									usart1_sendString(strTemp,strlen(strTemp));	
+			//usart1_sendString(strTemp,strlen(strTemp));	
 
 			
 			
