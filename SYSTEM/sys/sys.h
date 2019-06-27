@@ -82,6 +82,12 @@
 #include "CAN.h"
 #include "stmflash.h"
 #include "pstwo.h"
+//库函数版要用到
+#include "stm32f10x_exti.h"
+#include "stm32f10x_gpio.h"
+#include "stm32f10x_rcc.h"
+#include "misc.h"
+#include "stm32f10x_tim.h"
 //JTAG模式设置定义
 #define JTAG_SWD_DISABLE   0X02
 #define SWD_ENABLE         0X01

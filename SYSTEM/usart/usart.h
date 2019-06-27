@@ -12,18 +12,3 @@ u8 click_RC (void);
 void USART_TX(void);
 #endif	   
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
