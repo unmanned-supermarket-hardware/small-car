@@ -36,9 +36,11 @@ int main(void)
 	else Run_Flag=0;                //=====启动的过程中，根据模式选择开关确定进入位置模式还是速度模式
 
 	OLED_Init();                    //=====OLED初始化
-	uart_init(72,19200);           //=====串口1初始化
+	uart_init(72,19200);           	//=====串口1初始化
 	uart2_init(36,9600);            //=====串口2初始化
-  uart3_init(36,19200);          //=====串口3初始化 默认与蓝牙连接
+  uart3_init(36,19200);          	//=====串口3初始化 默认与蓝牙连接
+	
+	
 	Encoder_Init_TIM2();            //=====编码器接口
 	Encoder_Init_TIM3();            //=====编码器接口
 	Encoder_Init_TIM4();            //=====初始化编码器C
@@ -48,10 +50,12 @@ int main(void)
   MPU6050_initialize();           //=====MPU6050初始化	
   DMP_Init();                     //=====初始化DMP     
 	if(KEY==0) Flash_Read();        //=====读取Flash里面的参数
-	PS2_Init();											//=====ps2驱动端口初始化
-	PS2_SetInit();		 							//=====ps2配置初始化,配置“红绿灯模式”，并选择是否可以修改
+//	PS2_Init();											//=====ps2驱动端口初始化
+//	PS2_SetInit();		 							//=====ps2配置初始化,配置“红绿灯模式”，并选择是否可以修改
   EXTI_Init_R();                    //=====MPU6050 5ms定时中断初始化
   CAN1_Mode_Init(1,2,3,6,0);      //=====CAN初始化
+	
+	My_Usart1_Init();								//=====模拟串口1初始化
 	while(1)
 		{		
 				if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
@@ -65,7 +69,7 @@ int main(void)
 					oled_show();             //===显示屏打开
 				}
 				CAN1_SEND();                //CAN发送	
-				PS2_Receive();            //PS2接收
+//				PS2_Receive();            //PS2接收
 				//USART_TX();                //串口发送
 				delay_flag=1;	
 				delay_50=0;

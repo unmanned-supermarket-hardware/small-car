@@ -79,8 +79,8 @@ int USART1_IRQHandler(void)
 					}
 					temp=USART1->DR;
 				//------------------------------------
-				sprintf(strTemp,"USART1 收到：%c\r\n",temp);
-				//usart1_sendString(strTemp,strlen(strTemp));
+				sprintf(strTemp,"USART1 receive：%c\r\n",temp);
+				usart1_sendString(strTemp,strlen(strTemp));
 				printf(strTemp, "串口1收到数据： %c\r\n",temp);
 				if(temp == 'O')
 				{
@@ -89,6 +89,11 @@ int USART1_IRQHandler(void)
 				else if(temp =='D')
 				{
 					usart3_send('D');
+				}
+				//测试模拟串口的发送功能
+				else if(temp == 't')
+				{
+					USART_Send_1((u8 *)strTemp,strlen(strTemp));
 				}
 //-------------------------				
 				   if(Usart_Flag==0)

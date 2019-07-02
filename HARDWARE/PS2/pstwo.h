@@ -4,7 +4,7 @@
 #include "sys.h"
       
 
-#define DI   PCin(2)           //PB12  输入
+#define DI   PCin(2)           //PC2  输入
 
 #define DO_H PCout(1)=1        //命令位高
 #define DO_L PCout(1)=0        //命令位低

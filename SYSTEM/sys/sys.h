@@ -82,6 +82,7 @@
 #include "CAN.h"
 #include "stmflash.h"
 #include "pstwo.h"
+#include "my_usart.h"
 //库函数版要用到
 #include "stm32f10x_exti.h"
 #include "stm32f10x_gpio.h"
