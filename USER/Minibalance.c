@@ -1,4 +1,5 @@
 #include "sys.h"
+#include "control.h"
   /**************************************************************************
 作者：平衡小车之家
 我的淘宝小店：http://shop114407458.taobao.com/
@@ -23,8 +24,15 @@ float Velocity_KP=10,Velocity_KI=10;	          //速度控制PID参数
 int RC_Velocity=30,RC_Position=1000;         //设置遥控的速度和位置值
 int PS2_LX,PS2_LY,PS2_RX,PS2_RY,PS2_KEY;  
 int Gryo_Z;
+
+int intoCurve = 0; // 进入弯道的标志 
+
+
 int main(void)
 { 
+
+	int timeNumDistance = 0; // 计划500ms 进行 自校准  主要是  左侧轨道的情况，要保证平行
+
 	Stm32_Clock_Init(9);            //=====系统时钟设置
 	delay_init(72);                 //=====延时初始化
 	JTAG_Set(JTAG_SWD_DISABLE);     //=====关闭JTAG接口
@@ -36,9 +44,11 @@ int main(void)
 	else Run_Flag=0;                //=====启动的过程中，根据模式选择开关确定进入位置模式还是速度模式
 
 	OLED_Init();                    //=====OLED初始化
+	
 	uart_init(72,19200);           //=====串口1初始化
 	uart2_init(36,9600);            //=====串口2初始化
-  uart3_init(36,19200);          //=====串口3初始化 默认与蓝牙连接
+	uart3_init(36,19200);          //=====串口3初始化 默认与蓝牙连接
+ 	 
 	Encoder_Init_TIM2();            //=====编码器接口
 	Encoder_Init_TIM3();            //=====编码器接口
 	Encoder_Init_TIM4();            //=====初始化编码器C
@@ -52,23 +62,56 @@ int main(void)
 	PS2_SetInit();		 							//=====ps2配置初始化,配置“红绿灯模式”，并选择是否可以修改
   EXTI_Init_R();                    //=====MPU6050 5ms定时中断初始化
   CAN1_Mode_Init(1,2,3,6,0);      //=====CAN初始化
+
+
+	// 初始化  测距的  结构体
+	carDistance->start = 0;  // 代表 还未得到距离值
+	carDistance->distanceF = 0;
+	carDistance->distanceL1 = 0;
+	carDistance->distanceL2 = 0;
+	carDistance->leftPositionOK = 0;
+	
+	// 开启三个红外测距
+	usart3_send('O');
+	//usart3_send('O');
+	//usart3_send('O');
+
+
+	
 	while(1)
-		{		
-				if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
-				{
-					Flash_Write();	
-					Flash_Send=0;	
-				}	
-				if(Flag_Show==0)           //使用MiniBalance APP和OLED显示屏
-				{
-					APP_Show();	              
-					oled_show();             //===显示屏打开
-				}
-				CAN1_SEND();                //CAN发送	
-				PS2_Receive();            //PS2接收
-				//USART_TX();                //串口发送
-				delay_flag=1;	
-				delay_50=0;
-				while(delay_flag);	       //通过MPU6050的INT中断实现的50ms精准延时				
-		} 
+	{		
+		if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
+		{
+			Flash_Write();	
+			Flash_Send=0;	
+		}	
+		if(Flag_Show==0)           //使用MiniBalance APP和OLED显示屏
+		{
+			APP_Show();	              
+			oled_show();             //===显示屏打开
+		}
+		CAN1_SEND();                //CAN发送	
+		PS2_Receive();            //PS2接收
+		//USART_TX();                //串口发送
+		delay_flag=1;	
+		delay_50=0;
+		while(delay_flag);	       //通过MPU6050的INT中断实现的50ms精准延时				
+
+
+
+
+		// 第一次红外测距采集完成
+		if ( (carDistance->distanceF != 0) && (carDistance->distanceL1 != 0) && (carDistance->distanceL2 != 0))
+		{
+			carDistance->start = 1;
+		}
+
+		// 500ms 矫正一次  当前位置
+		timeNumDistance++;
+		if (timeNumDistance == 10)
+		{
+			PositionCorrection();
+			timeNumDistance = 0;
+		}
+	} 
 }

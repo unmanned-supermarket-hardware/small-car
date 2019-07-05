@@ -10,6 +10,16 @@ u8 temp1;                                               //临时变量
 float Voltage_Count,Voltage_All;  //电压采样相关变量
 float Gyro_K=0.00;       //陀螺仪比例系数
 int j;
+
+// 全局存储  小车测距的数据
+struct CarDistance {
+	double distanceF;
+	double distanceL1;
+	double distanceL2;
+	u8 leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
+	u8 start;  // 1: 已经开始测距        0：还未开始测距
+} *carDistance ;
+
 #define X_PARAMETER          (0.5f)               
 #define Y_PARAMETER           (sqrt(3)/2.f)      
 #define L_PARAMETER            (1.0f)         
@@ -512,4 +522,76 @@ void CAN_N_Usart_Control(void)
 				Kinematic_Analysis(Move_X,Move_Y,Move_Z),Gyro_K=0;    //进行运动学分析 
 			}
 	 }
+}
+
+
+/**************************************************************************
+函数功能：		小车自矫正  矫正 平行姿态， 边距距离
+入口参数：		无
+返回  值：		无
+**************************************************************************/
+void PositionCorrection(void)
+{
+
+	float distanceDvalueToL = 0 ;  
+	u8 PositionFlag1 = 0;  //  当前小车  边距状态，1：矫正Ok,			  0：未完成
+	u8 PositionFlag2 = 0;  //  当前小车  平行状态，1：矫正Ok,		  0：未完成
+	
+	// 还未获得距离值，不进行矫正
+	if (carDistance->start == 0 )
+	{
+		return;
+	}
+
+
+	// 正在入弯道，不进行矫正
+	if (intoCurve  == 1 )
+	{
+		return;
+	}
+
+
+	//小车离轨道边距的矫正
+	distanceDvalueToL = (carDistance->distanceL1 * 1000 + carDistance->distanceL2 * 1000)/2 - GOALlDISTANCETOL ; 
+	if (distanceDvalueToL >10) // 离轨道过远，超过10mm
+	{
+		//  轨道  垂直方向  提供下速度
+
+		 PositionFlag1 = 0;
+	}
+	else if (distanceDvalueToL <-10) // 离轨道过近，太近10mm
+	{
+		//  轨道  垂直方向  提供下速度
+		PositionFlag1 = 0;
+	}else{
+
+		//  轨道  垂直方向 速度为 0
+		PositionFlag1 = 1;
+	}
+
+	// 小车与轨道平行姿态矫正
+	if (carDistance->distanceL1 * 1000- carDistance->distanceL2 * 1000 >10 )  //该逆时针旋转
+	{
+		// Z轴加上 逆时针的  速度
+		PositionFlag2 = 0;
+	}
+	else if (carDistance->distanceL1 * 1000- carDistance->distanceL2 * 1000 < -10 )  //该顺时针旋转
+	{
+		// Z轴加上 顺时针的  速度
+		PositionFlag2= 0;
+	}else {
+
+		// Z轴加上 顺时针的  速度  为0
+		PositionFlag2 = 1;
+	}
+
+
+	// 自校正 状态
+	if ((PositionFlag1 == 1) && (PositionFlag2 == 1) )
+	{
+		carDistance->leftPositionOK = 1;
+	}else
+	{
+		carDistance->leftPositionOK = 0;
+	}
 }

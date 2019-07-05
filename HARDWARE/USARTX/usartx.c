@@ -75,51 +75,57 @@ int USART3_IRQHandler(void)
 {	
 	if(USART3->SR&(1<<5))//接收到数据
 	{	      
-				u8 temp;
-				u8 myBuffer[64];
-				double distance;
-				char strTemp[64];
-				char strDistance[7];
-				static u8 count,last_data,last_last_data,dState,oState,index;
-				//count = last_data = last_last_data = dState = oState = index = 0;
-				//
-				temp=USART3->DR;
-				usart1_send(temp);
+		u8 temp;
+		u8 myBuffer[64];
+		double distance;
+		char strTemp[64];
+		char strDistance[7];
+		static u8 count,last_data,last_last_data,dState,oState,index;
 
-				//sprintf(strTemp," %d\r\n",dState);
-				//usart1_sendString(strTemp,strlen(strTemp));
-			
-				switch(dState)
-				{
-					case (0): {if (temp == 'D') dState = dD; break;}    //还没出现'D' ，判断现在是否为‘D’
-					case (dD): {if (temp == ':') {dState = dColon; index =0;}break;}    //上一个是'D'，判断是否出现':'
-					case(dColon):   //已经出现':'，如果下面不是空格就是数字了。
+
+		temp=USART3->DR;
+		usart1_send(temp);
+
+		//sprintf(strTemp," %d\r\n",dState);
+		//usart1_sendString(strTemp,strlen(strTemp));
+	
+		switch(dState)
+		{
+			case (0): {if (temp == 'D') dState = dD; break;}    //还没出现'D' ，判断现在是否为‘D’
+			case (dD): {if (temp == ':') {dState = dColon; index =0;}break;}    //上一个是'D'，判断是否出现':'
+			case(dColon):   //已经出现':'，如果下面不是空格就是数字了。
+			{
+					if(temp == 'm')
 					{
-							if(temp == 'm')
-							{
-								strDistance[index] = '\0';
-								distance = atof(strDistance);
-								dState = 0;
-								
-								sprintf(strTemp,"\r\n%f\r\n",distance);
-								usart1_sendString(strTemp,strlen(strTemp));
-							}
-							else if(temp!=' ')
-							{
-								strDistance[index] = temp;
-								index++;
-							}
-							break;
+						strDistance[index] = '\0';
+						distance = atof(strDistance);
+
+						//  串口跟  红外的对应要改下
+						carDistance->distanceF = distance
+						dState = 0;
+
+						// 结束了一次采集开始下一次采集，要测下是否是  双工的
+						usart3_send('D');
+						
+						//sprintf(strTemp,"\r\n%f\r\n",distance);
+						//usart1_sendString(strTemp,strlen(strTemp));
 					}
-				}
-				
-				
-		
-				//--------------------------
-				last_data=temp;
-				last_last_data=last_data;
-			
+					else if(temp!=' ')
+					{
+						strDistance[index] = temp;
+						index++;
+					}
+					break;
+			}
 		}
+		
+		
+
+		//--------------------------
+		last_data=temp;
+		last_last_data=last_data;
+			
+	}
 			
    
 return 0;	
