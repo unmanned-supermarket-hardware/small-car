@@ -11,6 +11,8 @@ float Voltage_Count,Voltage_All;  //电压采样相关变量
 float Gyro_K=0.00;       //陀螺仪比例系数
 int j;
 
+
+//AIWAC  无人超市
 // 全局存储  小车测距的数据
 struct CarDistance {
 	double distanceF;
@@ -19,6 +21,14 @@ struct CarDistance {
 	u8 leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
 	u8 start;  // 1: 已经开始测距        0：还未开始测距
 } *carDistance ;
+
+float AIWAC_R_vehicle = 310;  //小车半径，单位：mm
+float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
+float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
+float AIWAC_V_sum = 300;  // 当前的速度，单位  mm/s
+int AIWACTuringTime = 0;  // 转弯的时间控制
+
+
 
 #define X_PARAMETER          (0.5f)               
 #define Y_PARAMETER           (sqrt(3)/2.f)      
@@ -102,6 +112,8 @@ int EXTI15_10_IRQHandler(void)
 			Key();//扫描按键变化	
 			return 0;	                                               
 			}                                                                      //===10ms控制一次，为了保证M法测速的时间基准，首先读取编码器数据
+
+		  
 			Encoder_A=Read_Encoder(2)/20;                                          //===读取编码器的值
 			Position_A+=Encoder_A;                                                 //===积分得到位置 
 			Encoder_B=Read_Encoder(3)/20;                                          //===读取编码器的值
@@ -123,9 +135,7 @@ int EXTI15_10_IRQHandler(void)
 		  //if(CAN_ON_Flag==1||Usart_ON_Flag==1||PS2_ON_Flag==1) CAN_N_Usart_Control();       //接到串口或者CAN遥控解锁指令之后，使能CAN和串口控制输入
 		  //if(CAN_ON_Flag==0&&Usart_ON_Flag==0&&PS2_ON_Flag==0)  Get_RC(Run_Flag);  //===串口和CAN控制都未使能，则接收蓝牙遥控指
 		 
-	
-
-
+		AiwacSupermarketCarControl();
 
 		Motor_A=Incremental_PI_A(Encoder_A,Target_A);                         //===速度闭环控制计算电机A最终PWM
 		Motor_B=Incremental_PI_B(Encoder_B,Target_B);                         //===速度闭环控制计算电机B最终PWM
@@ -519,7 +529,7 @@ void CAN_N_Usart_Control(void)
 入口参数：		无
 返回  值：		无
 **************************************************************************/
-void PositionCorrection(void)
+void AiwacPositionCorrection(void)
 {
 
 	float distanceDvalueToL = 0 ;  
@@ -584,3 +594,42 @@ void PositionCorrection(void)
 		carDistance->leftPositionOK = 0;
 	}
 }
+
+
+void AiwacSupermarketCarControl(void)
+{
+	AIWAC_Move_Y = 0;
+	AIWAC_Move_Z = 0;
+
+
+	// X 前进速度  由  主控下发指令
+	
+	
+	if(intoCurve == 0) // intoCurve 置1  主控设置
+	{
+		AiwacPositionCorrection();  // 会产生 Y    Z轴的速度
+	}
+	else if (intoCurve == 1) // 开始转弯
+	{
+		
+		if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
+		{
+			//send()  // 发送  转弯结束的情况
+			intoCurve = 0;
+			AIWACTuringTime = 0;
+		}
+		else {
+
+			AIWAC_Move_X = -AIWAC_V_sum;
+			AIWAC_Move_Y = 0;	
+			AIWAC_Move_Z = (AIWAC_R_vehicle/AIWAC_R_gui)*(-AIWAC_Move_X);	
+			
+			AIWACTuringTime++; //每次增加都是 10ms
+		}
+
+	}
+
+
+	Kinematic_Analysis_SpeedMode_Aiwac(AIWAC_Move_X,AIWAC_Move_Y,AIWAC_Move_Z);//得到控制目标值，进行运动学分析
+}
+

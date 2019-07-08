@@ -34,6 +34,7 @@ int Position_PID_C (int Encoder,int Target);
 void Get_RC(u8 mode);
 void Count_Velocity(void);
 void CAN_N_Usart_Control(void);
-void PositionCorrection(void);
+void AiwacPositionCorrection(void);
+void AiwacSupermarketCarControl(void);
 
 #endif
