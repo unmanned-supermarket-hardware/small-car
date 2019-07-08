@@ -110,42 +110,31 @@ int EXTI15_10_IRQHandler(void)
 			Position_C+=Encoder_C;                                                 //===积分得到位置     
 	  	Read_DMP();                                                            //===更新姿态	
   		Led_Flash(100);                                                        //===LED闪烁;常规模式 1s改变一次指示灯的状态	
-			Voltage_All+=Get_battery_volt();                                       //多次采样累积
-			if(++Voltage_Count==100) Voltage=Voltage_All/100,Voltage_All=0,Voltage_Count=0;//求平均值 获取电池电压	       
-		  if(PS2_KEY==4)PS2_ON_Flag=1,CAN_ON_Flag=0,Usart_ON_Flag=0;						
-		  if(CAN_ON_Flag==1||Usart_ON_Flag==1||PS2_ON_Flag==1) CAN_N_Usart_Control();       //接到串口或者CAN遥控解锁指令之后，使能CAN和串口控制输入
+  		
+		Voltage_All+=Get_battery_volt();                                       //多次采样累积
+		if(++Voltage_Count==100) Voltage=Voltage_All/100,Voltage_All=0,Voltage_Count=0;//求平均值 获取电池电压	       
+		 if(Turn_Off(Voltage)!=0)               //===如果电池电压存在异常
+		 { 	
+			return;
+		 }
 
-		 if(Turn_Off(Voltage)==0)               //===如果电池电压不存在异常
-		 { 			 
-		  if(Run_Flag==0)//速度模式
-			{		
-				if(CAN_ON_Flag==0&&Usart_ON_Flag==0&&PS2_ON_Flag==0)  Get_RC(Run_Flag);  //===串口和CAN控制都未使能，则接收蓝牙遥控指
-				Motor_A=Incremental_PI_A(Encoder_A,Target_A);                         //===速度闭环控制计算电机A最终PWM
-				Motor_B=Incremental_PI_B(Encoder_B,Target_B);                         //===速度闭环控制计算电机B最终PWM
-				Motor_C=Incremental_PI_C(Encoder_C,Target_C);                         //===速度闭环控制计算电机C最终PWM
-			}
-			 else//位置模式
-			{
-					if(CAN_ON_Flag==0&&Usart_ON_Flag==0&&PS2_ON_Flag==0) //===串口和CAN控制都未使能，则接收蓝牙遥控指令
-				 {	
-					if(Turn_Flag==0) 	Flag_Direction=click_RC();     
-					Get_RC(Run_Flag);
-				 }
-					Motor_A=Position_PID_A(Position_A,Target_A)>>8;//位置闭环控制，计算电机A速度内环的输入量
-					Motor_B=Position_PID_B(Position_B,Target_B)>>8;//位置闭环控制，计算电机B速度内环的输入量
-					Motor_C=Position_PID_C(Position_C,Target_C)>>8;//位置闭环控制，计算电机C速度内环的输入量
+		 
+		  //if(PS2_KEY==4)PS2_ON_Flag=1,CAN_ON_Flag=0,Usart_ON_Flag=0;						
+		  //if(CAN_ON_Flag==1||Usart_ON_Flag==1||PS2_ON_Flag==1) CAN_N_Usart_Control();       //接到串口或者CAN遥控解锁指令之后，使能CAN和串口控制输入
+		  //if(CAN_ON_Flag==0&&Usart_ON_Flag==0&&PS2_ON_Flag==0)  Get_RC(Run_Flag);  //===串口和CAN控制都未使能，则接收蓝牙遥控指
+		 
+	
+
+
+
+		Motor_A=Incremental_PI_A(Encoder_A,Target_A);                         //===速度闭环控制计算电机A最终PWM
+		Motor_B=Incremental_PI_B(Encoder_B,Target_B);                         //===速度闭环控制计算电机B最终PWM
+		Motor_C=Incremental_PI_C(Encoder_C,Target_C);                         //===速度闭环控制计算电机C最终PWM
 				
-			    if(rxbuf[0]!=2)  Count_Velocity();   //这是调节位置控制过程的速度大小
-					else 	
-					Xianfu_Velocity(RC_Velocity,RC_Velocity,RC_Velocity); 
-					Motor_A=Incremental_PI_A(Encoder_A,-Motor_A);         //===速度闭环控制计算电机A最终PWM
-					Motor_B=Incremental_PI_B(Encoder_B,-Motor_B);         //===速度闭环控制计算电机B最终PWM
-					Motor_C=Incremental_PI_C(Encoder_C,-Motor_C);         //===速度闭环控制计算电机C最终PWM
-			}	 
 		 Xianfu_Pwm(6500);                     //===PWM限幅
 		 Set_Pwm(Motor_B,Motor_A,Motor_C);     //===赋值给PWM寄存器  
-		 }
- }
+		 
+ 	}
 	 return 0;	 
 } 
 
