@@ -45,9 +45,9 @@ int main(void)
 
 	OLED_Init();                    //=====OLED初始化
 	
-	uart_init(72,19200);           //=====串口1初始化
-	uart2_init(36,9600);            //=====串口2初始化
-	uart3_init(36,19200);          //=====串口3初始化 默认与蓝牙连接
+	uart_init(72,19200);           //=====串口1初始化，下载 程序和  打印日志
+	uart2_init(36,9600);            //=====串口2初始化，连主控   
+	uart3_init(36,19200);          //=====串口3初始化  ， 连测距的单片机
  	 
 	Encoder_Init_TIM2();            //=====编码器接口
 	Encoder_Init_TIM3();            //=====编码器接口
@@ -71,13 +71,8 @@ int main(void)
 	carDistance.distanceL2 = 0;
 	carDistance.leftPositionOK = 0;
 	
-	// 开启三个红外测距
-	//usart3_send('O');
-	//usart3_send('O');
-	//usart3_send('O');
 
 
-	
 	while(1)
 	{		
 		if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
@@ -85,11 +80,12 @@ int main(void)
 			Flash_Write();	
 			Flash_Send=0;	
 		}	
+		/*
 		if(Flag_Show==0)           //使用MiniBalance APP和OLED显示屏
 		{
 			APP_Show();	              
 			oled_show();             //===显示屏打开
-		}
+		}*/
 		CAN1_SEND();                //CAN发送	
 		PS2_Receive();            //PS2接收
 		//USART_TX();                //串口发送
@@ -111,7 +107,8 @@ int main(void)
 		if (timeNumDistance == 10)
 		{
 			//PositionCorrection();
-			usart1_send('#');
+			usart3_send('*');
+			
 			timeNumDistance = 0;
 		}
 	} 

@@ -1,6 +1,8 @@
 
 #include "usartx.h"
 #include "control.h"
+# include <string.h>
+
 /**************************实现函数**********************************************
 *功    能:		usart3发送一个字节
 *********************************************************************************/
@@ -71,23 +73,78 @@ float temp;
 #define oO 1
 #define oEnd 2
 
+
+char startMS = '+';	//保存协议前两字节			#！
+u8 startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+int	dataLen = -1;		// json字符串的长度
+u8 jsonBuF[300]; 			// 存储接收的json 字符串
+int jsonDataCount = 0;  //当前接收的  json 字符串数
+
+
 int USART3_IRQHandler(void)
 {	
 	if(USART3->SR&(1<<5))//接收到数据
-	{	      
-		u8 temp;
+	{	      		
 		u8 myBuffer[64];
 		double distance;
 		char strTemp[64];
 		char strDistance[7];
 		static u8 count,last_data,last_last_data,dState,oState,index;
 
+		u8 temp;
 
+		
 		temp=USART3->DR;
-		//usart1_send(temp);
 
-		//sprintf(strTemp," %d\r\n",dState);
-		//usart1_sendString(strTemp,strlen(strTemp));
+		// 判断协议数据的开头
+
+		if (startGetMS == 0)
+		{
+			if (temp == '#')
+			{
+				startMS = '#';			
+			}
+			else if ((temp == '!') && (startMS == '#')) 
+			{
+				startGetMS = 1;// 协议标志 前两字节 接收ok	
+			}
+		}
+		else if (startGetMS == 1)// 接收 协议数据  内 json 字符串的长度
+		{
+			if (dataLen == -1)
+			{
+				dataLen = temp*256;
+			}else if(dataLen != -1)
+			{
+				dataLen = dataLen + temp;
+				startGetMS =2;				
+			}		
+		}else if (startGetMS == 2)  // // 开始接收  Json 串
+		{
+			
+			jsonBuF[jsonDataCount] = temp;
+			jsonDataCount++;
+			
+			if (jsonDataCount == dataLen)  //  本次接收完毕
+			{
+
+				usart3_sendString(jsonBuF, dataLen);
+
+				// 调 json 解析函数
+
+				// 恢复初始化
+				startMS = '+';  //保存协议前两字节          #！
+				startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+				dataLen = -1;  		// json字符串的长度
+				memset(jsonBuF, 0, sizeof(jsonBuF));
+				jsonDataCount = 0;  //当前接收的  json 字符串数
+				
+			}
+		}
+		
+
+		
+/*
 	
 		switch(dState)
 		{
@@ -124,7 +181,7 @@ int USART3_IRQHandler(void)
 		//--------------------------
 		last_data=temp;
 		last_last_data=last_data;
-			
+*/	
 	}
 			
    
