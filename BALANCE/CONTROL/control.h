@@ -11,8 +11,19 @@
 #define GOALlDISTANCETOL 1000  // 毫米，小车中心离  轨道左侧的距离
 
 
+// 全局存储  小车测距的数据
+struct CarDistance {
+	double distanceF;
+	double distanceL1;
+	double distanceL2;
+	u8 leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
+	u8 start;  // 1: 已经开始测距        0：还未开始测距
+}  ;
+
 extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
-extern struct CarDistance *carDistance;
+extern struct CarDistance carDistance;
+extern int intoCurve;
+
 int EXTI15_10_IRQHandler(void);
 void Set_Pwm(int motor_a,int motor_b,int motor_c);
 void Kinematic_Analysis(float Vx,float Vy,float Vz);

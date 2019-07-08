@@ -1,6 +1,6 @@
 
 #include "usartx.h"
-
+#include "control.h"
 /**************************实现函数**********************************************
 *功    能:		usart3发送一个字节
 *********************************************************************************/
@@ -84,7 +84,7 @@ int USART3_IRQHandler(void)
 
 
 		temp=USART3->DR;
-		usart1_send(temp);
+		//usart1_send(temp);
 
 		//sprintf(strTemp," %d\r\n",dState);
 		//usart1_sendString(strTemp,strlen(strTemp));
@@ -101,7 +101,7 @@ int USART3_IRQHandler(void)
 						distance = atof(strDistance);
 
 						//  串口跟  红外的对应要改下
-						carDistance->distanceF = distance
+						carDistance.distanceF = distance;
 						dState = 0;
 
 						// 结束了一次采集开始下一次采集，要测下是否是  双工的

@@ -13,21 +13,13 @@ int j;
 
 
 //AIWAC  无人超市
-// 全局存储  小车测距的数据
-struct CarDistance {
-	double distanceF;
-	double distanceL1;
-	double distanceL2;
-	u8 leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
-	u8 start;  // 1: 已经开始测距        0：还未开始测距
-} *carDistance ;
-
+struct CarDistance carDistance;
 float AIWAC_R_vehicle = 310;  //小车半径，单位：mm
 float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
 float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
 float AIWAC_V_sum = 300;  // 当前的速度，单位  mm/s
 int AIWACTuringTime = 0;  // 转弯的时间控制
-
+int intoCurve = 0; // 进入弯道的标志 
 
 
 #define X_PARAMETER          (0.5f)               
@@ -537,7 +529,7 @@ void AiwacPositionCorrection(void)
 	u8 PositionFlag2 = 0;  //  当前小车  平行状态，1：矫正Ok,		  0：未完成
 	
 	// 还未获得距离值，不进行矫正
-	if (carDistance->start == 0 )
+	if (carDistance.start == 0 )
 	{
 		return;
 	}
@@ -551,7 +543,7 @@ void AiwacPositionCorrection(void)
 
 
 	//小车离轨道边距的矫正
-	distanceDvalueToL = (carDistance->distanceL1 * 1000 + carDistance->distanceL2 * 1000)/2 - GOALlDISTANCETOL ; 
+	distanceDvalueToL = (carDistance.distanceL1 * 1000 + carDistance.distanceL2 * 1000)/2 - GOALlDISTANCETOL ; 
 	if (distanceDvalueToL >10) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
@@ -569,12 +561,12 @@ void AiwacPositionCorrection(void)
 	}
 
 	// 小车与轨道平行姿态矫正
-	if (carDistance->distanceL1 * 1000- carDistance->distanceL2 * 1000 >10 )  //该逆时针旋转
+	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >10 )  //该逆时针旋转
 	{
 		// Z轴加上 逆时针的  速度
 		PositionFlag2 = 0;
 	}
-	else if (carDistance->distanceL1 * 1000- carDistance->distanceL2 * 1000 < -10 )  //该顺时针旋转
+	else if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 < -10 )  //该顺时针旋转
 	{
 		// Z轴加上 顺时针的  速度
 		PositionFlag2= 0;
@@ -588,10 +580,10 @@ void AiwacPositionCorrection(void)
 	// 自校正 状态
 	if ((PositionFlag1 == 1) && (PositionFlag2 == 1) )
 	{
-		carDistance->leftPositionOK = 1;
+		carDistance.leftPositionOK = 1;
 	}else
 	{
-		carDistance->leftPositionOK = 0;
+		carDistance.leftPositionOK = 0;
 	}
 }
 

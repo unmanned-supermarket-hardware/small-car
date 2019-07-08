@@ -84,7 +84,7 @@ int USART1_IRQHandler(void)
 				printf(strTemp, "串口1收到数据： %c\r\n",temp);
 				if(temp == 'O')
 				{
-					usart3_send('O');
+					//usart3_send('O');
 				}
 				else if(temp =='D')
 				{

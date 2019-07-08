@@ -25,7 +25,7 @@ int RC_Velocity=30,RC_Position=1000;         //设置遥控的速度和位置值
 int PS2_LX,PS2_LY,PS2_RX,PS2_RY,PS2_KEY;  
 int Gryo_Z;
 
-int intoCurve = 0; // 进入弯道的标志 
+
 
 
 int main(void)
@@ -65,14 +65,14 @@ int main(void)
 
 
 	// 初始化  测距的  结构体
-	carDistance->start = 0;  // 代表 还未得到距离值
-	carDistance->distanceF = 0;
-	carDistance->distanceL1 = 0;
-	carDistance->distanceL2 = 0;
-	carDistance->leftPositionOK = 0;
+	carDistance.start = 0;  // 代表 还未得到距离值
+	carDistance.distanceF = 0;
+	carDistance.distanceL1 = 0;
+	carDistance.distanceL2 = 0;
+	carDistance.leftPositionOK = 0;
 	
 	// 开启三个红外测距
-	usart3_send('O');
+	//usart3_send('O');
 	//usart3_send('O');
 	//usart3_send('O');
 
@@ -101,16 +101,17 @@ int main(void)
 
 
 		// 第一次红外测距采集完成
-		if ( (carDistance->distanceF != 0) && (carDistance->distanceL1 != 0) && (carDistance->distanceL2 != 0))
+		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
 		{
-			carDistance->start = 1;
+			carDistance.start = 1;
 		}
 
 		// 500ms 矫正一次  当前位置
 		timeNumDistance++;
 		if (timeNumDistance == 10)
 		{
-			PositionCorrection();
+			//PositionCorrection();
+			usart1_send('#');
 			timeNumDistance = 0;
 		}
 	} 
