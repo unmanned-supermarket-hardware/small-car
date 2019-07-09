@@ -42,6 +42,22 @@ void usart1_send(u8 data)
 	USART1->DR = data;
 	while((USART1->SR&0x40)==0);	
 }
+
+
+/**************************实现函数**********************************************
+*功    能:		usart1发送一个字符串
+*********************************************************************************/
+void usart1_sendString(char *data,u8 len)
+{
+	int i=0;
+	for(i=0;i<len;i++)
+	{
+		USART1->DR = data[i];
+		while((USART1->SR&0x40)==0);	
+	}
+	
+}
+
 void uart_init(u32 pclk2,u32 bound)
 {  	 
 	float temp;
@@ -116,7 +132,7 @@ return 0;
 
 //////////////////////////////////////////////////////////////////
 /**************************实现函数**********************************************
-*功    能:		usart1发送一个字节
+*功    能:		usart2发送一个字节
 *********************************************************************************/
 void usart2_send(u8 data)
 {
@@ -124,16 +140,17 @@ void usart2_send(u8 data)
 	while((USART2->SR&0x40)==0);	
 }
 
+
 /**************************实现函数**********************************************
-*功    能:		usart1发送一个字符串
+*功    能:		usart2发送一个字符串
 *********************************************************************************/
-void usart1_sendString(char *data,u8 len)
+void usart2_sendString(char *data,u8 len)
 {
 	int i=0;
 	for(i=0;i<len;i++)
 	{
-		USART1->DR = data[i];
-		while((USART1->SR&0x40)==0);	
+		USART2->DR = data[i];
+		while((USART2->SR&0x40)==0);	
 	}
 	
 }
@@ -163,6 +180,16 @@ void uart2_init(u32 pclk2,u32 bound)
 	USART2->CR1|=1<<5;    //接收缓冲区非空中断使能	    	
 	MY_NVIC_Init(0,1,USART2_IRQn,2);//组2，最低优先级 
 }
+
+
+
+char USART2_startMS = '+';	//保存协议前两字节			#！
+u8 USART2_startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+int	USART2_dataLen = -1;		// json字符串的长度
+u8 USART2_jsonBuF[1000]; 			// 在中断的时候 存储接收的json 字符串
+int USART2_jsonDataCount = 0;  //当前接收的  json 字符串数
+u8 USART2_jsonParseBuF[1000]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
+
 /**************************************************************************
 函数功能：串口2接收中断
 入口参数：无
@@ -172,10 +199,61 @@ int USART2_IRQHandler(void)
 {	
 	if(USART2->SR&(1<<5))//接收到数据
 	{	      
-		static u8 Flag_PID,i,j,Receive[50];
-		static float Data;
-		Usart_Receive=USART2->DR;
+		u8 temp;
+		
+		temp=USART2->DR;
+
+
+	// 判断协议数据的开头
 	
+		if (USART2_startGetMS == 0)
+		{
+			if (temp == '#')
+			{
+				USART2_startMS = '#';			
+			}
+			else if ((temp == '!') && (USART2_startMS == '#')) 
+			{
+				USART2_startGetMS = 1;// 协议标志 前两字节 接收ok	
+			}
+		}
+		else if (USART2_startGetMS == 1)// 接收 协议数据  内 json 字符串的长度
+		{
+			if (USART2_dataLen == -1)
+			{
+				USART2_dataLen = temp*256;
+			}else if(USART2_dataLen != -1)
+			{
+				USART2_dataLen = USART2_dataLen + temp;
+				USART2_startGetMS =2;				
+			}		
+		}else if (USART2_startGetMS == 2)	// // 开始接收	Json 串
+		{
+			
+			USART2_jsonBuF[USART2_jsonDataCount] = temp;
+			USART2_jsonDataCount++;
+			
+			if (USART2_jsonDataCount == USART2_dataLen)  //  本次接收完毕
+			{
+
+				//usart2_sendString(USART2_jsonBuF, USART2_dataLen);
+
+				strcpy(USART2_jsonParseBuF,USART2_jsonBuF);
+				
+				// 恢复初始化
+				USART2_startMS = '+';	//保存协议前两字节			#！
+				USART2_startGetMS = 0; 	// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+				USART2_dataLen = -1;		// json字符串的长度
+				memset(USART2_jsonBuF, 0, sizeof(USART2_jsonBuF));
+				USART2_jsonDataCount = 0;	//当前接收的  json 字符串数
+				
+			}
+		}
+				
+
+
+
+		/*
 	  if(Usart_Receive==0x4B) Turn_Flag=1;  //进入转向控制界面
 	  else	if(Usart_Receive==0x49||Usart_Receive==0x4A) 	 Turn_Flag=0;	//方向控制界面
 		
@@ -239,7 +317,9 @@ int USART2_IRQHandler(void)
 					 j=0;
 					 Data=0;
 					 memset(Receive, 0, sizeof(u8)*50);//数组清零
-		 } 	 
+		 } 	
+
+		 */
    }
 return 0;	
 }

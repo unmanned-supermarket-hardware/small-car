@@ -17,10 +17,14 @@ struct CarDistance carDistance;  // 存储 三个 测量的距离
 float AIWAC_R_vehicle = 310;  //小车半径，单位：mm
 float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
 float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
+float AIWAC_MOVE_Xtemp = 0;  // 保存  主控下发的 X 速度
 float AIWAC_V_sum = 300;  // 当前的速度，单位  mm/s
-int AIWACTuringTime = 0;  // 转弯的时间控制
-int intoCurve = 0; // 进入弯道的标志 
+int AIWACTuringTime = 0;
+  // 转弯的时间控制
+int moveState = STATE_STOP; // 小车运动 状态，  0：停止，  1：  直走  2： 顺时针转  3：逆时针转 
 int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
+
+
 
 #define X_PARAMETER          (0.5f)               
 #define Y_PARAMETER           (sqrt(3)/2.f)      
@@ -547,7 +551,7 @@ void AiwacPositionCorrection(void)
 
 
 	// 正在入弯道，不进行矫正
-	if (intoCurve  == 1 )
+	if ((moveState  == STATE_TURN_LEFT ) || (moveState  == STATE_TURN_RIGHT ) )
 	{
 		return;
 	}
@@ -558,16 +562,18 @@ void AiwacPositionCorrection(void)
 	if (distanceDvalueToL >10) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
-
-		 PositionFlag1 = 0;
+		AIWAC_Move_Y = -10;  // 向轨道 靠近，10mm/s
+		PositionFlag1 = 0;
 	}
 	else if (distanceDvalueToL <-10) // 离轨道过近，太近10mm
 	{
 		//  轨道  垂直方向  提供下速度
+		AIWAC_Move_Y = 10;  // 向轨道 原理，10mm/s
 		PositionFlag1 = 0;
 	}else{
 
 		//  轨道  垂直方向 速度为 0
+		AIWAC_Move_Y = 0;
 		PositionFlag1 = 1;
 	}
 
@@ -575,22 +581,26 @@ void AiwacPositionCorrection(void)
 	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >10 )  //该逆时针旋转
 	{
 		// Z轴加上 逆时针的  速度
+		AIWAC_Move_Z = -10;   // 10mm/s
 		PositionFlag2 = 0;
 	}
 	else if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 < -10 )  //该顺时针旋转
 	{
-		// Z轴加上 顺时针的  速度
+		// Z轴加上 顺时针的  速度 
+		AIWAC_Move_Z = 10;  // 10mm/s
 		PositionFlag2= 0;
 	}else {
 
 		// Z轴加上 顺时针的  速度  为0
+		AIWAC_Move_Z = 0;
 		PositionFlag2 = 1;
 	}
 
 
 	// 自校正 状态
 	if ((PositionFlag1 == 1) && (PositionFlag2 == 1) )
-	{
+	{
+
 		carDistance.leftPositionOK = 1;
 	}else
 	{
@@ -612,19 +622,20 @@ void AiwacSupermarketCarControl(void)
 
 
 	// X 前进速度  由  主控下发指令
+	AIWAC_Move_X = AIWAC_MOVE_Xtemp;
 	
-	
-	if(intoCurve == 0) // intoCurve 置1  主控设置
-	{
+	if ((moveState == STATE_STOP) || (moveState == STATE_STRAIGHT)) // 停止或 直线运动
+	{
+
 		AiwacPositionCorrection();  // 会产生 Y    Z轴的速度
 	}
-	else if (intoCurve == 1) // 开始转弯
+	else if (moveState == STATE_TURN_RIGHT) // 开始右转弯
 	{
 		
 		if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
 		{
 			//send()  // 发送  转弯结束的情况
-			intoCurve = 0;
+			moveState = STATE_STOP;
 			AIWACTuringTime = 0;
 		}
 		else {
@@ -637,14 +648,33 @@ void AiwacSupermarketCarControl(void)
 		}
 
 	}
+	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
+	{
+		if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
+		{
+			//send()  // 发送  转弯结束的情况
+			moveState = STATE_STOP;
+			AIWACTuringTime = 0;
+		}
+		else {
+
+			AIWAC_Move_X = AIWAC_V_sum;
+			AIWAC_Move_Y = 0;	
+			AIWAC_Move_Z = (AIWAC_R_vehicle/AIWAC_R_gui)*(-AIWAC_Move_X);	
+			
+			AIWACTuringTime++; //每次增加都是 10ms
+		}
+
+	}
 
 
-
-	if (AIWACStop == 1)  //  进行停止
+	if (AIWACStop == 1)  //  强制停止
 	{
 		AIWAC_Move_X = 0;
 		AIWAC_Move_Y = 0;
 		AIWAC_Move_Z = 0;
+		
+		moveState = STATE_STOP;
 	}
 
 	Kinematic_Analysis_SpeedMode_Aiwac(AIWAC_Move_X,AIWAC_Move_Y,AIWAC_Move_Z);//得到控制目标值，进行运动学分析
@@ -652,7 +682,7 @@ void AiwacSupermarketCarControl(void)
 
 
 
-char exeStr[100];
+
 cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
 
 /**************************************************************************
@@ -661,7 +691,14 @@ cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
 返回  值：		无
 **************************************************************************/
 void AiwacParseDistanceJson(void)
-{
+{
+
+
+	if (jsonParseBuF[0] == '-' ) //  还未收到 距离信息
+	{
+		return;
+	}
+	
 	rootDistance = cJSON_Parse(jsonParseBuF);
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "F");  //  需要确定  距离 标签       	前方的 
@@ -688,3 +725,40 @@ void AiwacParseDistanceJson(void)
 
 	cJSON_Delete(rootDistance);
 }
+
+
+cJSON *rootMoveOrder, *orderValue;  //  不晓得name需不需要回收
+
+/**************************************************************************
+函数功能：		解析从串口  获取的  主控下发的  运动指令
+入口参数：		无
+返回  值：		无
+**************************************************************************/
+void AiwacParseMOVEOrder(void)
+{
+
+	if (USART2_jsonParseBuF[0] == '-' ) //  还未收到运动命令
+	{
+		return;
+	}
+	
+	rootMoveOrder = cJSON_Parse(USART2_jsonParseBuF);
+
+	orderValue = cJSON_GetObjectItem(rootMoveOrder, "X_V");  //  X轴速度 
+	if (!orderValue) {
+	    printf("get name faild !\n");
+	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	AIWAC_MOVE_Xtemp = orderValue->valuedouble;  //X轴速度 
+
+
+	orderValue = cJSON_GetObjectItem(rootMoveOrder, "moveState");  //  运动指令
+	if (!orderValue) {
+	    printf("get name faild !\n");
+	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	moveState = orderValue->valueint;  //运动指令
+
+	cJSON_Delete(rootMoveOrder);
+}
+

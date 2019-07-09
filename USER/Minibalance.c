@@ -69,6 +69,8 @@ int main(void)
 	carDistance.distanceL2 = 0;
 	carDistance.leftPositionOK = 0;
 	
+	jsonParseBuF[0] = '-';
+	USART2_jsonParseBuF[0] = '-';
 
 
 
@@ -93,8 +95,10 @@ int main(void)
 		while(delay_flag);	       //通过MPU6050的INT中断实现的50ms精准延时				
 
 
-		// 更新存储的 三个方向的距离
+		// 解析并更新存储的 三个方向的距离
 		AiwacParseDistanceJson();
+		//解析并更新 主控下发的指令
+		AiwacParseMOVEOrder();
 
 		// 第一次红外测距采集完成
 		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
@@ -106,6 +110,8 @@ int main(void)
 		timeNumDistance++;
 		if (timeNumDistance == 10)
 		{
+		usart2_sendString("~1234",5);
+		 //usart2_send('1');
 			printf("\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
 			timeNumDistance = 0;
 		}

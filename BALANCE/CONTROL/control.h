@@ -13,6 +13,12 @@
 #define DIFFERENCE 100
 #define GOALlDISTANCETOL 1000  // 毫米，小车中心离  轨道左侧的距离
 
+// 小车的运动状态
+#define STATE_STOP 0
+#define STATE_STRAIGHT 1
+#define STATE_TURN_RIGHT 2
+#define STATE_TURN_LEFT 3
+
 
 // 全局存储  小车测距的数据
 struct CarDistance {
@@ -26,7 +32,7 @@ struct CarDistance {
 extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
 extern struct CarDistance carDistance;
 extern int intoCurve;
-extern u8 jsonParseBuF[300];
+extern u8 jsonParseBuF[1000], USART2_jsonParseBuF[1000];
 
 int EXTI15_10_IRQHandler(void);
 void Set_Pwm(int motor_a,int motor_b,int motor_c);
@@ -52,6 +58,7 @@ void CAN_N_Usart_Control(void);
 void AiwacPositionCorrection(void);
 void AiwacSupermarketCarControl(void);
 void AiwacParseDistanceJson(void);
+void AiwacParseMOVEOrder(void);
 
 
 #endif
