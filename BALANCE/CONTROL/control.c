@@ -20,7 +20,7 @@ float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴
 float AIWAC_V_sum = 300;  // 当前的速度，单位  mm/s
 int AIWACTuringTime = 0;  // 转弯的时间控制
 int intoCurve = 0; // 进入弯道的标志 
-
+int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
 
 #define X_PARAMETER          (0.5f)               
 #define Y_PARAMETER           (sqrt(3)/2.f)      
@@ -527,7 +527,18 @@ void AiwacPositionCorrection(void)
 	float distanceDvalueToL = 0 ;  
 	u8 PositionFlag1 = 0;  //  当前小车  边距状态，1：矫正Ok,			  0：未完成
 	u8 PositionFlag2 = 0;  //  当前小车  平行状态，1：矫正Ok,		  0：未完成
-	
+
+
+
+	// 紧急制动
+	if ( ((carDistance.distanceF >0) && (carDistance.distanceL1  >0) && (carDistance.distanceL2 >0))  //  已经开始测量
+		&& ((carDistance.distanceF < 0.05) && (carDistance.distanceL1  < 0.02) && (carDistance.distanceL2 < 0.02)) )  //判断危险的情况
+	{
+		AIWACStop = 1;
+	}
+
+		
+		
 	// 还未获得距离值，不进行矫正
 	if (carDistance.start == 0 )
 	{
@@ -628,6 +639,14 @@ void AiwacSupermarketCarControl(void)
 	}
 
 
+
+	if (AIWACStop == 1)  //  进行停止
+	{
+		AIWAC_Move_X = 0;
+		AIWAC_Move_Y = 0;
+		AIWAC_Move_Z = 0;
+	}
+
 	Kinematic_Analysis_SpeedMode_Aiwac(AIWAC_Move_X,AIWAC_Move_Y,AIWAC_Move_Z);//得到控制目标值，进行运动学分析
 }
 
@@ -635,8 +654,6 @@ void AiwacSupermarketCarControl(void)
 
 char exeStr[100];
 cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
-
-
 
 /**************************************************************************
 函数功能：		解析从串口  获取的  三个方向的  距离
@@ -667,7 +684,7 @@ void AiwacParseDistanceJson(void)
 	    printf("get name faild !\n");
 	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
-	carDistance.distanceL2 = DistanceValue->valuedouble;  //左21的距离
+	carDistance.distanceL2 = DistanceValue->valuedouble;  //左2的距离
 
 	cJSON_Delete(rootDistance);
 }
