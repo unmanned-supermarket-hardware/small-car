@@ -13,7 +13,7 @@ int j;
 
 
 //AIWAC  无人超市
-struct CarDistance carDistance;
+struct CarDistance carDistance;  // 存储 三个 测量的距离
 float AIWAC_R_vehicle = 310;  //小车半径，单位：mm
 float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
 float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
@@ -588,6 +588,12 @@ void AiwacPositionCorrection(void)
 }
 
 
+
+/**************************************************************************
+函数功能：		小车 轮控制 函数， 包含 自校正  、转弯、
+入口参数：		无
+返回  值：		无
+**************************************************************************/
 void AiwacSupermarketCarControl(void)
 {
 	AIWAC_Move_Y = 0;
@@ -625,3 +631,43 @@ void AiwacSupermarketCarControl(void)
 	Kinematic_Analysis_SpeedMode_Aiwac(AIWAC_Move_X,AIWAC_Move_Y,AIWAC_Move_Z);//得到控制目标值，进行运动学分析
 }
 
+
+
+char exeStr[100];
+cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
+
+
+
+/**************************************************************************
+函数功能：		解析从串口  获取的  三个方向的  距离
+入口参数：		无
+返回  值：		无
+**************************************************************************/
+void AiwacParseDistanceJson(void)
+{
+	rootDistance = cJSON_Parse(jsonParseBuF);
+
+	DistanceValue = cJSON_GetObjectItem(rootDistance, "F");  //  需要确定  距离 标签       	前方的 
+	if (!DistanceValue) {
+	    printf("get name faild !\n");
+	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	carDistance.distanceF = DistanceValue->valuedouble;  //前方的距离
+
+
+	DistanceValue = cJSON_GetObjectItem(rootDistance, "L1");  //  需要确定  距离 标签			左1
+	if (!DistanceValue) {
+	    printf("get name faild !\n");
+	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	carDistance.distanceL1 = DistanceValue->valuedouble;  //左1的距离
+
+	DistanceValue = cJSON_GetObjectItem(rootDistance, "L2");  //  需要确定  距离 标签			左2
+	if (!DistanceValue) {
+	    printf("get name faild !\n");
+	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	carDistance.distanceL2 = DistanceValue->valuedouble;  //左21的距离
+
+	cJSON_Delete(rootDistance);
+}

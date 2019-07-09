@@ -26,6 +26,7 @@ struct CarDistance {
 extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
 extern struct CarDistance carDistance;
 extern int intoCurve;
+extern u8 jsonParseBuF[300];
 
 int EXTI15_10_IRQHandler(void);
 void Set_Pwm(int motor_a,int motor_b,int motor_c);
@@ -50,5 +51,7 @@ void Count_Velocity(void);
 void CAN_N_Usart_Control(void);
 void AiwacPositionCorrection(void);
 void AiwacSupermarketCarControl(void);
+void AiwacParseDistanceJson(void);
+
 
 #endif

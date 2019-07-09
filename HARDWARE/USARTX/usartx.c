@@ -1,7 +1,7 @@
 
 #include "usartx.h"
 #include "control.h"
-# include <string.h>
+#include <string.h>
 
 /**************************实现函数**********************************************
 *功    能:		usart3发送一个字节
@@ -77,23 +77,17 @@ float temp;
 char startMS = '+';	//保存协议前两字节			#！
 u8 startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
 int	dataLen = -1;		// json字符串的长度
-u8 jsonBuF[300]; 			// 存储接收的json 字符串
+u8 jsonBuF[300]; 			// 在中断的时候 存储接收的json 字符串
 int jsonDataCount = 0;  //当前接收的  json 字符串数
+u8 jsonParseBuF[300]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
 
 
 int USART3_IRQHandler(void)
 {	
 	if(USART3->SR&(1<<5))//接收到数据
 	{	      		
-		u8 myBuffer[64];
-		double distance;
-		char strTemp[64];
-		char strDistance[7];
-		static u8 count,last_data,last_last_data,dState,oState,index;
-
 		u8 temp;
-
-		
+	
 		temp=USART3->DR;
 
 		// 判断协议数据的开头
@@ -130,8 +124,8 @@ int USART3_IRQHandler(void)
 
 				usart3_sendString(jsonBuF, dataLen);
 
-				// 调 json 解析函数
-
+				strcpy(jsonParseBuF,jsonBuF);
+				
 				// 恢复初始化
 				startMS = '+';  //保存协议前两字节          #！
 				startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
@@ -143,45 +137,6 @@ int USART3_IRQHandler(void)
 		}
 		
 
-		
-/*
-	
-		switch(dState)
-		{
-			case (0): {if (temp == 'D') dState = dD; break;}    //还没出现'D' ，判断现在是否为‘D’
-			case (dD): {if (temp == ':') {dState = dColon; index =0;}break;}    //上一个是'D'，判断是否出现':'
-			case(dColon):   //已经出现':'，如果下面不是空格就是数字了。
-			{
-					if(temp == 'm')
-					{
-						strDistance[index] = '\0';
-						distance = atof(strDistance);
-
-						//  串口跟  红外的对应要改下
-						carDistance.distanceF = distance;
-						dState = 0;
-
-						// 结束了一次采集开始下一次采集，要测下是否是  双工的
-						usart3_send('D');
-						
-						//sprintf(strTemp,"\r\n%f\r\n",distance);
-						//usart1_sendString(strTemp,strlen(strTemp));
-					}
-					else if(temp!=' ')
-					{
-						strDistance[index] = temp;
-						index++;
-					}
-					break;
-			}
-		}
-		
-		
-
-		//--------------------------
-		last_data=temp;
-		last_last_data=last_data;
-*/	
 	}
 			
    

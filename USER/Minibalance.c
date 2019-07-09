@@ -26,11 +26,6 @@ int PS2_LX,PS2_LY,PS2_RX,PS2_RY,PS2_KEY;
 int Gryo_Z;
 
 
-cJSON *root;
-char *out;
-
-
-
 int main(void)
 { 
 
@@ -76,6 +71,7 @@ int main(void)
 	
 
 
+
 	while(1)
 	{		
 		if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
@@ -97,7 +93,8 @@ int main(void)
 		while(delay_flag);	       //通过MPU6050的INT中断实现的50ms精准延时				
 
 
-
+		// 更新存储的 三个方向的距离
+		AiwacParseDistanceJson();
 
 		// 第一次红外测距采集完成
 		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
@@ -107,27 +104,9 @@ int main(void)
 
 		// 500ms 矫正一次  当前位置
 		timeNumDistance++;
-		//if (timeNumDistance == 2)
+		if (timeNumDistance == 10)
 		{
-
-			cJSON *root;
-			char *out;
-
-
-			root=cJSON_CreateObject();
-
-
-			cJSON_AddStringToObject(root,"type", "rect");//?????????????,???cJSON??????
-			cJSON_AddNumberToObject(root,"width", 1920);
-			cJSON_AddNumberToObject(root,"height", 1080);
-			cJSON_AddNumberToObject(root,"frame rate", 24);
-
-			out=cJSON_Print(root); 
-			cJSON_Delete(root); 
-			printf("%s\n",out); 
-
-			myfree(out);
-			
+			printf("\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
 			timeNumDistance = 0;
 		}
 	} 
