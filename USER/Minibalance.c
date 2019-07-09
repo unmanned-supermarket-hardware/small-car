@@ -99,6 +99,8 @@ int main(void)
 		AiwacParseDistanceJson();
 		//解析并更新 主控下发的指令
 		AiwacParseMOVEOrder();
+		//  给主控发小车 的  状态
+		AiwacSendState2Master();
 
 		// 第一次红外测距采集完成
 		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
@@ -110,9 +112,10 @@ int main(void)
 		timeNumDistance++;
 		if (timeNumDistance == 10)
 		{
-		usart2_sendString("~1234",5);
+		//usart2_sendString("~1234",5);
 		 //usart2_send('1');
-			printf("\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
+			//printf("\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
+
 			timeNumDistance = 0;
 		}
 	} 

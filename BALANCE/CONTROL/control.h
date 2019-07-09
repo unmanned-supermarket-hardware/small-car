@@ -25,8 +25,8 @@ struct CarDistance {
 	double distanceF;
 	double distanceL1;
 	double distanceL2;
-	u8 leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
-	u8 start;  // 1: 已经开始测距        0：还未开始测距
+	int leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
+	int start;  // 1: 已经开始测距        0：还未开始测距
 }  ;
 
 extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
@@ -55,10 +55,14 @@ int Position_PID_C (int Encoder,int Target);
 void Get_RC(u8 mode);
 void Count_Velocity(void);
 void CAN_N_Usart_Control(void);
+
+\
 void AiwacPositionCorrection(void);
 void AiwacSupermarketCarControl(void);
 void AiwacParseDistanceJson(void);
 void AiwacParseMOVEOrder(void);
+void  AiwacSendState2Master(void);
+double myabs_double(double a);
 
 
 #endif

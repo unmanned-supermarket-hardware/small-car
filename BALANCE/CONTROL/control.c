@@ -238,6 +238,20 @@ u32 myabs(long int a)
 	  else temp=a;
 	  return temp;
 }
+
+/**************************************************************************
+函数功能：绝对值函数
+入口参数：double
+返回  值：unsigned int
+**************************************************************************/
+double myabs_double(double a)
+{ 		   
+	  double temp;
+		if(a<0)  temp=-a;  
+	  else temp=a;
+	  return temp;
+}
+
 /**************************************************************************
 函数功能：增量PI控制器
 入口参数：编码器测量值，目标速度
@@ -760,5 +774,54 @@ void AiwacParseMOVEOrder(void)
 	moveState = orderValue->valueint;  //运动指令
 
 	cJSON_Delete(rootMoveOrder);
+}
+
+
+
+void  AiwacSendState2Master(void)
+{
+
+	cJSON *root;
+	char *out;
+	int len = 0;
+	char str[300];
+	
+	char usartData[300];
+	memset(usartData, 0, sizeof(usartData));
+
+	usartData[0] = '#';
+	usartData[1] = '!';
+
+	root=cJSON_CreateObject();
+
+	cJSON_AddNumberToObject(root,"from", 2);
+	cJSON_AddNumberToObject(root,"to", 3);
+	cJSON_AddNumberToObject(root,"msType", 1);
+	cJSON_AddNumberToObject(root,"CorrectState", carDistance.leftPositionOK);
+	cJSON_AddNumberToObject(root,"LDGap",  myabs_double(carDistance.distanceL1 - carDistance.distanceL2));
+	cJSON_AddNumberToObject(root,"FDistance", carDistance.distanceF);
+	cJSON_AddNumberToObject(root,"moveState", moveState);
+
+	out=cJSON_Print(root); 
+	cJSON_Delete(root); 
+
+	strcpy(str,out);
+	printf("%s\n",out); 
+	len = strlen(str);
+	
+	usartData[2] = (u8)(len/256);
+
+	//printf("\r\nusartData[2]:%d",usartData[2]);
+	
+	usartData[3] = (u8)(len%256);
+	//printf("\r\nusartData[3]:%d",usartData[3]);
+	strcat(usartData, str);
+	//printf("\r\n  2Master  jsonLen:%d,usatLen:%d,usartData:%s,json:%s",strlen(str),usartData[2]*256+usartData[3],usartData,out);
+
+	
+
+	usart2_sendString(usartData, strlen(usartData));
+	myfree(out);
+
 }
 
