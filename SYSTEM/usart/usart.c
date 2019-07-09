@@ -17,6 +17,12 @@ _sys_exit(int x)
 { 
 	x = x; 
 } 
+//__use_no_semihosting was requested, but _ttywrch was 
+_ttywrch(int ch) 
+{ 
+ch = ch; 
+} 
+
 //重定义fputc函数 
 int fputc(int ch, FILE *f)
 {      

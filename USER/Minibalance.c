@@ -26,6 +26,9 @@ int PS2_LX,PS2_LY,PS2_RX,PS2_RY,PS2_KEY;
 int Gryo_Z;
 
 
+cJSON *root;
+char *out;
+
 
 
 int main(void)
@@ -104,10 +107,26 @@ int main(void)
 
 		// 500ms 矫正一次  当前位置
 		timeNumDistance++;
-		if (timeNumDistance == 10)
+		//if (timeNumDistance == 2)
 		{
-			//PositionCorrection();
-			usart3_send('*');
+
+			cJSON *root;
+			char *out;
+
+
+			root=cJSON_CreateObject();
+
+
+			cJSON_AddStringToObject(root,"type", "rect");//?????????????,???cJSON??????
+			cJSON_AddNumberToObject(root,"width", 1920);
+			cJSON_AddNumberToObject(root,"height", 1080);
+			cJSON_AddNumberToObject(root,"frame rate", 24);
+
+			out=cJSON_Print(root); 
+			cJSON_Delete(root); 
+			printf("%s\n",out); 
+
+			myfree(out);
 			
 			timeNumDistance = 0;
 		}
