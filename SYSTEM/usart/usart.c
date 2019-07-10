@@ -101,9 +101,9 @@ int USART1_IRQHandler(void)
 					}
 					temp=USART1->DR;
 				//------------------------------------
-				sprintf(strTemp,"USART1 收到：%c\r\n",temp);
+				//sprintf(strTemp,"USART1 收到：%c\r\n",temp);
 				//usart1_sendString(strTemp,strlen(strTemp));
-				printf(strTemp, "串口1收到数据： %c\r\n",temp);
+				//printf(strTemp, "串口1收到数据： %c\r\n",temp);
 				if(temp == 'O')
 				{
 					//usart3_send('O');

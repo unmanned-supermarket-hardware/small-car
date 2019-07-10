@@ -11,7 +11,7 @@
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
-#define GOALlDISTANCETOL 1000  // 毫米，小车中心离  轨道左侧的距离
+#define GOALlDISTANCETOL 100  // 毫米，小车中心离  轨道左侧的距离
 
 // 小车的运动状态
 #define STATE_STOP 0

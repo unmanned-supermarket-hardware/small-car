@@ -1,6 +1,7 @@
 #include "control.h"	
 #include "filter.h"	
 #include <math.h>
+
   /**************************************************************************
 作者：平衡小车之家
 我的淘宝小店：http://shop114407458.taobao.com/
@@ -576,13 +577,13 @@ void AiwacPositionCorrection(void)
 	if (distanceDvalueToL >10) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
-		AIWAC_Move_Y = -10;  // 向轨道 靠近，10mm/s
+		AIWAC_Move_Y = -30;  // 向轨道 靠近，10mm/s
 		PositionFlag1 = 0;
 	}
 	else if (distanceDvalueToL <-10) // 离轨道过近，太近10mm
 	{
 		//  轨道  垂直方向  提供下速度
-		AIWAC_Move_Y = 10;  // 向轨道 原理，10mm/s
+		AIWAC_Move_Y = 30;  // 向轨道 原理，10mm/s
 		PositionFlag1 = 0;
 	}else{
 
@@ -595,13 +596,13 @@ void AiwacPositionCorrection(void)
 	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >10 )  //该逆时针旋转
 	{
 		// Z轴加上 逆时针的  速度
-		AIWAC_Move_Z = -10;   // 10mm/s
+		AIWAC_Move_Z = -30;   // 10mm/s
 		PositionFlag2 = 0;
 	}
 	else if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 < -10 )  //该顺时针旋转
 	{
 		// Z轴加上 顺时针的  速度 
-		AIWAC_Move_Z = 10;  // 10mm/s
+		AIWAC_Move_Z = 30;  // 10mm/s
 		PositionFlag2= 0;
 	}else {
 
@@ -717,26 +718,50 @@ void AiwacParseDistanceJson(void)
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "F");  //  需要确定  距离 标签       	前方的 
 	if (!DistanceValue) {
-	    printf("get name faild !\n");
-	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	   // printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
 	carDistance.distanceF = DistanceValue->valuedouble;  //前方的距离
 
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "L1");  //  需要确定  距离 标签			左1
 	if (!DistanceValue) {
-	    printf("get name faild !\n");
-	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    //printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
 	carDistance.distanceL1 = DistanceValue->valuedouble;  //左1的距离
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "L2");  //  需要确定  距离 标签			左2
 	if (!DistanceValue) {
-	    printf("get name faild !\n");
-	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    //printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
 	carDistance.distanceL2 = DistanceValue->valuedouble;  //左2的距离
 
+
+/*
+// 测试
+	DistanceValue = cJSON_GetObjectItem(rootDistance, "d2str");  //  需要确定  距离 标签			左2
+	if (!DistanceValue) {
+	    //printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	printf("\r\nd2str:%s",DistanceValue->valuestring);
+
+		DistanceValue = cJSON_GetObjectItem(rootDistance, "d3str");  //  需要确定  距离 标签			左2
+	if (!DistanceValue) {
+	    //printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	printf("\r\nd3str:%s",DistanceValue->valuestring);
+
+		DistanceValue = cJSON_GetObjectItem(rootDistance, "d5str");  //  需要确定  距离 标签			左2
+	if (!DistanceValue) {
+	    //printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	}
+	printf("\r\nd5str:%s",DistanceValue->valuestring);
+*/
 	cJSON_Delete(rootDistance);
 }
 
@@ -760,16 +785,16 @@ void AiwacParseMOVEOrder(void)
 
 	orderValue = cJSON_GetObjectItem(rootMoveOrder, "X_V");  //  X轴速度 
 	if (!orderValue) {
-	    printf("get name faild !\n");
-	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    //printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
 	AIWAC_MOVE_Xtemp = orderValue->valuedouble;  //X轴速度 
 
 
 	orderValue = cJSON_GetObjectItem(rootMoveOrder, "moveState");  //  运动指令
 	if (!orderValue) {
-	    printf("get name faild !\n");
-	    printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	   // printf("get name faild !\n");
+	   // printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
 	moveState = orderValue->valueint;  //运动指令
 
@@ -806,7 +831,7 @@ void  AiwacSendState2Master(void)
 	cJSON_Delete(root); 
 
 	strcpy(str,out);
-	printf("%s\n",out); 
+	//printf("%s\n",out); 
 	len = strlen(str);
 	
 	usartData[2] = (u8)(len/256);
@@ -819,7 +844,7 @@ void  AiwacSendState2Master(void)
 	//printf("\r\n  2Master  jsonLen:%d,usatLen:%d,usartData:%s,json:%s",strlen(str),usartData[2]*256+usartData[3],usartData,out);
 
 	
-
+// 需要打开
 	usart2_sendString(usartData, strlen(usartData));
 	myfree(out);
 

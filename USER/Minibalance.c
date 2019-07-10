@@ -43,9 +43,9 @@ int main(void)
 
 	OLED_Init();                    //=====OLED初始化
 	
-	uart_init(72,19200);           //=====串口1初始化，下载 程序和  打印日志
-	uart2_init(36,9600);            //=====串口2初始化，连主控   
-	uart3_init(36,19200);          //=====串口3初始化  ， 连测距的单片机
+	uart_init(72,115200);           //=====串口1初始化，下载 程序和  打印日志
+	uart2_init(36,115200);            //=====串口2初始化，连主控   
+	uart3_init(36,115200);          //=====串口3初始化  ， 连测距的单片机
  	 
 	Encoder_Init_TIM2();            //=====编码器接口
 	Encoder_Init_TIM3();            //=====编码器接口
@@ -114,7 +114,7 @@ int main(void)
 		{
 		//usart2_sendString("~1234",5);
 		 //usart2_send('1');
-			//printf("\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
+			//printf("\r\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
 
 			timeNumDistance = 0;
 		}
