@@ -20,6 +20,12 @@
 #define STATE_TURN_LEFT 3
 
 
+#define CORRECTION_Y 100  // 小车自校正  Y方向速度 
+#define CORRECTION_Z 100  // 小车自校正  Z方向速度 
+
+#define CORRECTION_Z_DISTANCE 10    // L1  L2  差多少开始矫正  平行
+
+
 // 全局存储  小车测距的数据
 struct CarDistance {
 	double distanceF;

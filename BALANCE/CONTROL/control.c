@@ -134,6 +134,8 @@ int EXTI15_10_IRQHandler(void)
 		 
 		AiwacSupermarketCarControl();
 
+
+
 		Motor_A=Incremental_PI_A(Encoder_A,Target_A);                         //===速度闭环控制计算电机A最终PWM
 		Motor_B=Incremental_PI_B(Encoder_B,Target_B);                         //===速度闭环控制计算电机B最终PWM
 		Motor_C=Incremental_PI_C(Encoder_C,Target_C);                         //===速度闭环控制计算电机C最终PWM
@@ -577,13 +579,13 @@ void AiwacPositionCorrection(void)
 	if (distanceDvalueToL >10) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
-		AIWAC_Move_Y = -30;  // 向轨道 靠近，10mm/s
+		AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
 		PositionFlag1 = 0;
 	}
-	else if (distanceDvalueToL <-10) // 离轨道过近，太近10mm
+	else if (distanceDvalueToL <-10) // 离轨道过近，太近  m
 	{
 		//  轨道  垂直方向  提供下速度
-		AIWAC_Move_Y = 30;  // 向轨道 原理，10mm/s
+		AIWAC_Move_Y =  (CORRECTION_Y);  // 向轨道 远离      mm
 		PositionFlag1 = 0;
 	}else{
 
@@ -593,16 +595,16 @@ void AiwacPositionCorrection(void)
 	}
 
 	// 小车与轨道平行姿态矫正
-	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >10 )  //该逆时针旋转
+	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >CORRECTION_Z_DISTANCE )  //该逆时针旋转
 	{
 		// Z轴加上 逆时针的  速度
-		AIWAC_Move_Z = -30;   // 10mm/s
+		AIWAC_Move_Z =  -(CORRECTION_Z);   // mm/s
 		PositionFlag2 = 0;
 	}
-	else if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 < -10 )  //该顺时针旋转
+	else if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 < -(CORRECTION_Z_DISTANCE) //该顺时针旋转
 	{
 		// Z轴加上 顺时针的  速度 
-		AIWAC_Move_Z = 30;  // 10mm/s
+		AIWAC_Move_Z =  (CORRECTION_Z);  // mm/s
 		PositionFlag2= 0;
 	}else {
 
@@ -692,13 +694,15 @@ void AiwacSupermarketCarControl(void)
 		moveState = STATE_STOP;
 	}
 
+ 
+
 	Kinematic_Analysis_SpeedMode_Aiwac(AIWAC_Move_X,AIWAC_Move_Y,AIWAC_Move_Z);//得到控制目标值，进行运动学分析
 }
 
 
 
 
-cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
+
 
 /**************************************************************************
 函数功能：		解析从串口  获取的  三个方向的  距离
@@ -707,6 +711,7 @@ cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
 **************************************************************************/
 void AiwacParseDistanceJson(void)
 {
+	cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
 
 
 	if (jsonParseBuF[0] == '-' ) //  还未收到 距离信息
@@ -766,7 +771,7 @@ void AiwacParseDistanceJson(void)
 }
 
 
-cJSON *rootMoveOrder, *orderValue;  //  不晓得name需不需要回收
+
 
 /**************************************************************************
 函数功能：		解析从串口  获取的  主控下发的  运动指令
@@ -775,6 +780,7 @@ cJSON *rootMoveOrder, *orderValue;  //  不晓得name需不需要回收
 **************************************************************************/
 void AiwacParseMOVEOrder(void)
 {
+	cJSON *rootMoveOrder, *orderValue;  //  不晓得name需不需要回收
 
 	if (USART2_jsonParseBuF[0] == '-' ) //  还未收到运动命令
 	{
