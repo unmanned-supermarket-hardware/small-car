@@ -101,7 +101,7 @@ int main(void)
 		AiwacParseMOVEOrder();
 		//  给主控发小车 的  状态
 		AiwacSendState2Master();
-
+		AiwacSupermarketCarControl();
 		// 第一次红外测距采集完成
 		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
 		{
@@ -114,7 +114,7 @@ int main(void)
 		{
 		//usart2_sendString("~1234",5);
 		 //usart2_send('1');
-			//printf("\r\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
+			printf("\r\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
 
 			timeNumDistance = 0;
 		}

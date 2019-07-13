@@ -3,6 +3,7 @@
 #include "sys.h"
 #include "malloc.h"
 #include "cJSON.h"
+#include "string.h"
 
   /**************************************************************************
 作者：平衡小车之家
@@ -11,7 +12,7 @@
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
-#define GOALlDISTANCETOL 100  // 毫米，小车中心离  轨道左侧的距离
+#define GOALlDISTANCETOL 150  // 毫米，小车中心离  轨道左侧的距离
 
 // 小车的运动状态
 #define STATE_STOP 0
@@ -20,10 +21,14 @@
 #define STATE_TURN_LEFT 3
 
 
-#define CORRECTION_Y 100  // 小车自校正  Y方向速度 
-#define CORRECTION_Z 100  // 小车自校正  Z方向速度 
+#define CORRECTION_Y 30  // 小车自校正  Y方向速度 
+#define CORRECTION_Z 30  // 小车自校正  Z方向速度 
 
-#define CORRECTION_Z_DISTANCE 10    // L1  L2  差多少开始矫正  平行
+#define CORRECTION_Y_BIG 100  // 小车自校正  Y方向速度     		快速矫正 
+#define CORRECTION_Z_BIG 100  // 小车自校正  Z方向速度      		快速矫正
+
+
+#define CORRECTION_Z_DISTANCE 6    // L1  L2  差多少开始矫正  平行
 
 
 // 全局存储  小车测距的数据
@@ -38,7 +43,7 @@ struct CarDistance {
 extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
 extern struct CarDistance carDistance;
 extern int intoCurve;
-extern u8 jsonParseBuF[1000], USART2_jsonParseBuF[1000];
+extern u8 jsonParseBuF[500], USART2_jsonParseBuF[500];
 
 int EXTI15_10_IRQHandler(void);
 void Set_Pwm(int motor_a,int motor_b,int motor_c);

@@ -27,8 +27,8 @@ ch = ch;
 int fputc(int ch, FILE *f)
 {      
 
-	while((USART2->SR&0X40)==0);
-	USART2->DR = (u8) ch;      
+	while((USART1->SR&0X40)==0);
+	USART1->DR = (u8) ch;      
   return ch;
 }
 #endif 
@@ -186,9 +186,21 @@ void uart2_init(u32 pclk2,u32 bound)
 char USART2_startMS = '+';	//保存协议前两字节			#！
 u8 USART2_startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
 int	USART2_dataLen = -1;		// json字符串的长度
-u8 USART2_jsonBuF[1000]; 			// 在中断的时候 存储接收的json 字符串
+u8 USART2_jsonBuF[500]; 			// 在中断的时候 存储接收的json 字符串
 int USART2_jsonDataCount = 0;  //当前接收的  json 字符串数
-u8 USART2_jsonParseBuF[1000]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
+u8 USART2_jsonParseBuF[500]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
+int uart2GetLen = 0;
+
+void  USART2StateTo0(void )
+{
+	// 恢复初始化
+	USART2_startMS = '+';	//保存协议前两字节			#！
+	USART2_startGetMS = 0; 	// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+	USART2_dataLen = -1;		// json字符串的长度
+	memset(USART2_jsonBuF, 0, sizeof(USART2_jsonBuF));
+	USART2_jsonDataCount = 0;	//当前接收的  json 字符串数
+	uart2GetLen = 0;
+}
 
 /**************************************************************************
 函数功能：串口2接收中断
@@ -210,12 +222,16 @@ int USART2_IRQHandler(void)
 		{
 			if (temp == '#')
 			{
-				USART2_startMS = '#';			
+				USART2_startMS = '#';	
+				uart2GetLen++;
 			}
-			else if ((temp == '!') && (USART2_startMS == '#')) 
+			else if ((temp == '!') && (USART2_startMS == '#') && (uart2GetLen ==1)) 
 			{
 				USART2_startGetMS = 1;// 协议标志 前两字节 接收ok	
-			}
+			}else if ((temp != '!')  && (USART2_startMS == '#')  && (uart2GetLen == 1)) 
+				{
+					USART2StateTo0();
+				}
 		}
 		else if (USART2_startGetMS == 1)// 接收 协议数据  内 json 字符串的长度
 		{
@@ -240,12 +256,7 @@ int USART2_IRQHandler(void)
 
 				strcpy(USART2_jsonParseBuF,USART2_jsonBuF);
 				
-				// 恢复初始化
-				USART2_startMS = '+';	//保存协议前两字节			#！
-				USART2_startGetMS = 0; 	// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
-				USART2_dataLen = -1;		// json字符串的长度
-				memset(USART2_jsonBuF, 0, sizeof(USART2_jsonBuF));
-				USART2_jsonDataCount = 0;	//当前接收的  json 字符串数
+				 USART2StateTo0();
 				
 			}
 		}

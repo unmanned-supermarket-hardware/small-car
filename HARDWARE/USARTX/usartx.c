@@ -77,9 +77,9 @@ float temp;
 char startMS = '+';	//保存协议前两字节			#！
 u8 startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
 int	dataLen = -1;		// json字符串的长度
-u8 jsonBuF[1000]; 			// 在中断的时候 存储接收的json 字符串
+u8 jsonBuF[500]; 			// 在中断的时候 存储接收的json 字符串
 int jsonDataCount = 0;  //当前接收的  json 字符串数
-u8 jsonParseBuF[1000]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
+u8 jsonParseBuF[500]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
 int uart3GetLen = 0; 
 
 
@@ -114,7 +114,7 @@ int USART3_IRQHandler(void)
 			else if ((temp == '!') && (startMS == '#') && (uart3GetLen == 1  )) 
 			{
 				startGetMS = 1;// 协议标志 前两字节 接收ok	
-			}else if(startMS == '#')
+			}else if((temp != '!')  && (startMS == '#')  && (uart3GetLen == 1))
 			{
 				USART3StateTo0();
 			}

@@ -132,7 +132,7 @@ int EXTI15_10_IRQHandler(void)
 		  //if(CAN_ON_Flag==1||Usart_ON_Flag==1||PS2_ON_Flag==1) CAN_N_Usart_Control();       //接到串口或者CAN遥控解锁指令之后，使能CAN和串口控制输入
 		  //if(CAN_ON_Flag==0&&Usart_ON_Flag==0&&PS2_ON_Flag==0)  Get_RC(Run_Flag);  //===串口和CAN控制都未使能，则接收蓝牙遥控指
 		 
-		AiwacSupermarketCarControl();
+	
 
 
 
@@ -553,7 +553,7 @@ void AiwacPositionCorrection(void)
 
 	// 紧急制动
 	if ( ((carDistance.distanceF >0) && (carDistance.distanceL1  >0) && (carDistance.distanceL2 >0))  //  已经开始测量
-		&& ((carDistance.distanceF < 0.05) && (carDistance.distanceL1  < 0.02) && (carDistance.distanceL2 < 0.02)) )  //判断危险的情况
+		&& ((carDistance.distanceF < 0.2) || (carDistance.distanceL1  < 0.06) || (carDistance.distanceL2 < 0.06)) )  //判断危险的情况
 	{
 		AIWACStop = 1;
 	}
@@ -580,12 +580,31 @@ void AiwacPositionCorrection(void)
 	{
 		//  轨道  垂直方向  提供下速度
 		AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
+
+
+		if (distanceDvalueToL > 50)
+		{
+			AIWAC_Move_Y = -(CORRECTION_Y_BIG);
+		}
+		else
+		{
+			//  轨道  垂直方向  提供下速度
+			AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
+		}
 		PositionFlag1 = 0;
 	}
 	else if (distanceDvalueToL <-10) // 离轨道过近，太近  m
 	{
-		//  轨道  垂直方向  提供下速度
-		AIWAC_Move_Y =  (CORRECTION_Y);  // 向轨道 远离      mm
+		if (distanceDvalueToL < -50)
+		{
+			AIWAC_Move_Y = (CORRECTION_Y_BIG);
+		}
+		else
+		{
+			//  轨道  垂直方向  提供下速度
+			AIWAC_Move_Y = (CORRECTION_Y);  // 向轨道 靠近， mm/s
+		}
+		
 		PositionFlag1 = 0;
 	}else{
 
@@ -593,6 +612,9 @@ void AiwacPositionCorrection(void)
 		AIWAC_Move_Y = 0;
 		PositionFlag1 = 1;
 	}
+
+
+	
 
 	// 小车与轨道平行姿态矫正
 	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >CORRECTION_Z_DISTANCE )  //该逆时针旋转
@@ -619,6 +641,7 @@ void AiwacPositionCorrection(void)
 	{
 
 		carDistance.leftPositionOK = 1;
+		printf("\r\n leftPositionOK");
 	}else
 	{
 		carDistance.leftPositionOK = 0;
@@ -727,7 +750,12 @@ void AiwacParseDistanceJson(void)
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	    goto end;
 	}
-	carDistance.distanceF = DistanceValue->valuedouble;  //前方的距离
+	//printf("\r\n  (DistanceValue->valuedouble < 0) :%d  DistanceValue->valuedouble:%f",(DistanceValue->valuedouble < 0), DistanceValue->valuedouble);
+	if (DistanceValue->valuedouble > 0)
+	{
+		carDistance.distanceF = DistanceValue->valuedouble;  //前方的距离
+	}
+
 
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "L1");  //  需要确定  距离 标签			左1
@@ -736,7 +764,14 @@ void AiwacParseDistanceJson(void)
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	    goto end;
 	}
-	carDistance.distanceL1 = DistanceValue->valuedouble;  //左1的距离
+	//printf("\r\n  (DistanceValue->valuedouble < 0) :%d	DistanceValue->valuedouble:%f",(DistanceValue->valuedouble < 0), DistanceValue->valuedouble);
+	if (DistanceValue->valuedouble >0)
+	{
+		carDistance.distanceL1 = DistanceValue->valuedouble;  //左1的距离
+	}
+
+
+
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "L2");  //  需要确定  距离 标签			左2
 	if (!DistanceValue) {
@@ -744,7 +779,11 @@ void AiwacParseDistanceJson(void)
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	    goto end;
 	}
-	carDistance.distanceL2 = DistanceValue->valuedouble;  //左2的距离
+	//printf("\r\n  (DistanceValue->valuedouble < 0) :%d	DistanceValue->valuedouble:%f",(DistanceValue->valuedouble < 0), DistanceValue->valuedouble);
+	if (DistanceValue->valuedouble > 0)
+	{
+		carDistance.distanceL2 = DistanceValue->valuedouble;  //左2的距离
+	}
 
 
 /*
@@ -798,6 +837,7 @@ void AiwacParseMOVEOrder(void)
 	if (!orderValue) {
 	    //printf("get name faild !\n");
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    goto end ;
 	}
 	AIWAC_MOVE_Xtemp = orderValue->valuedouble;  //X轴速度 
 
@@ -806,9 +846,11 @@ void AiwacParseMOVEOrder(void)
 	if (!orderValue) {
 	   // printf("get name faild !\n");
 	   // printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	   goto end ;
 	}
 	moveState = orderValue->valueint;  //运动指令
-
+	
+end :
 	cJSON_Delete(rootMoveOrder);
 }
 
@@ -820,7 +862,7 @@ void  AiwacSendState2Master(void)
 	u16 jsonSize;
 	cJSON *root;
 	char *strJson;
-	char strSend[1000];
+	char strSend[300];
 	
 	strSend[0] = '#';
 	strSend[1] = '!';
@@ -836,9 +878,9 @@ void  AiwacSendState2Master(void)
 	cJSON_AddNumberToObject(root,"FDistance", carDistance.distanceF);
 	cJSON_AddNumberToObject(root,"moveState", moveState);
 
-	strJson=cJSON_Print(root); 
+	strJson=cJSON_Print(root);
 	cJSON_Delete(root); 
-	
+printf("\r\n strJson:%s",strJson);
 	jsonSize = strlen(strJson);
 
 	strSend[2] = jsonSize >> 8;
@@ -847,6 +889,7 @@ void  AiwacSendState2Master(void)
 	strncpy(strSend+4,strJson,jsonSize);
 
 	// 需要打开
+
 	usart2_sendString(strSend,4 + jsonSize);
 	myfree(strJson);
 
