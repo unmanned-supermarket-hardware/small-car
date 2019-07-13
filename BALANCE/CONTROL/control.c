@@ -601,7 +601,7 @@ void AiwacPositionCorrection(void)
 		AIWAC_Move_Z =  -(CORRECTION_Z);   // mm/s
 		PositionFlag2 = 0;
 	}
-	else if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 < -(CORRECTION_Z_DISTANCE) //该顺时针旋转
+	else if ((carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000) < -(CORRECTION_Z_DISTANCE)) //该顺时针旋转
 	{
 		// Z轴加上 顺时针的  速度 
 		AIWAC_Move_Z =  (CORRECTION_Z);  // mm/s
@@ -812,16 +812,14 @@ void AiwacParseMOVEOrder(void)
 void  AiwacSendState2Master(void)
 {
 
+	u16 jsonSize;
 	cJSON *root;
-	char *out;
-	int len = 0;
-	char str[300];
+	char *strJson;
+	char strSend[1000];
 	
-	char usartData[300];
-	memset(usartData, 0, sizeof(usartData));
+	strSend[0] = '#';
+	strSend[1] = '!';
 
-	usartData[0] = '#';
-	usartData[1] = '!';
 
 	root=cJSON_CreateObject();
 
@@ -833,26 +831,19 @@ void  AiwacSendState2Master(void)
 	cJSON_AddNumberToObject(root,"FDistance", carDistance.distanceF);
 	cJSON_AddNumberToObject(root,"moveState", moveState);
 
-	out=cJSON_Print(root); 
+	strJson=cJSON_Print(root); 
 	cJSON_Delete(root); 
-
-	strcpy(str,out);
-	//printf("%s\n",out); 
-	len = strlen(str);
 	
-	usartData[2] = (u8)(len/256);
+	jsonSize = strlen(strJson);
 
-	//printf("\r\nusartData[2]:%d",usartData[2]);
-	
-	usartData[3] = (u8)(len%256);
-	//printf("\r\nusartData[3]:%d",usartData[3]);
-	strcat(usartData, str);
-	//printf("\r\n  2Master  jsonLen:%d,usatLen:%d,usartData:%s,json:%s",strlen(str),usartData[2]*256+usartData[3],usartData,out);
+	strSend[2] = jsonSize >> 8;
+	strSend[3] = jsonSize;
 
-	
-// 需要打开
-	usart2_sendString(usartData, strlen(usartData));
-	myfree(out);
+	strncpy(strSend+4,strJson,jsonSize);
+
+	// 需要打开
+	usart2_sendString(strSend,4 + jsonSize);
+	myfree(strJson);
 
 }
 

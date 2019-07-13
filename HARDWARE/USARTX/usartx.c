@@ -80,8 +80,19 @@ int	dataLen = -1;		// json字符串的长度
 u8 jsonBuF[1000]; 			// 在中断的时候 存储接收的json 字符串
 int jsonDataCount = 0;  //当前接收的  json 字符串数
 u8 jsonParseBuF[1000]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
+int uart3GetLen = 0; 
 
 
+void  USART3StateTo0(void )
+{
+	// 恢复初始化
+	startMS = '+';  //保存协议前两字节          #！
+	startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+	dataLen = -1;  		// json字符串的长度
+	jsonDataCount = 0;	//当前接收的  json 字符串数
+	memset(jsonBuF, 0, sizeof(jsonBuF));
+	uart3GetLen = 0; 
+}
 
 int USART3_IRQHandler(void)
 {	
@@ -97,11 +108,15 @@ int USART3_IRQHandler(void)
 		{
 			if (temp == '#')
 			{
-				startMS = '#';			
+				startMS = '#';		
+				uart3GetLen++; 
 			}
-			else if ((temp == '!') && (startMS == '#')) 
+			else if ((temp == '!') && (startMS == '#') && (uart3GetLen == 1  )) 
 			{
 				startGetMS = 1;// 协议标志 前两字节 接收ok	
+			}else if(startMS == '#')
+			{
+				USART3StateTo0();
 			}
 		}
 		else if (startGetMS == 1)// 接收 协议数据  内 json 字符串的长度
@@ -127,13 +142,8 @@ int USART3_IRQHandler(void)
 
 				strcpy(jsonParseBuF,jsonBuF);
 				
-				// 恢复初始化
-				startMS = '+';  //保存协议前两字节          #！
-				startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
-				dataLen = -1;  		// json字符串的长度
-				memset(jsonBuF, 0, sizeof(jsonBuF));
-				jsonDataCount = 0;  //当前接收的  json 字符串数
-				
+				USART3StateTo0();
+	
 			}
 		}
 		
