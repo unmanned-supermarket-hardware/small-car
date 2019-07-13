@@ -725,6 +725,7 @@ void AiwacParseDistanceJson(void)
 	if (!DistanceValue) {
 	   // printf("get name faild !\n");
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    goto end;
 	}
 	carDistance.distanceF = DistanceValue->valuedouble;  //Ç°·½µÄ¾àÀë
 
@@ -733,6 +734,7 @@ void AiwacParseDistanceJson(void)
 	if (!DistanceValue) {
 	    //printf("get name faild !\n");
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    goto end;
 	}
 	carDistance.distanceL1 = DistanceValue->valuedouble;  //×ó1µÄ¾àÀë
 
@@ -740,6 +742,7 @@ void AiwacParseDistanceJson(void)
 	if (!DistanceValue) {
 	    //printf("get name faild !\n");
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    goto end;
 	}
 	carDistance.distanceL2 = DistanceValue->valuedouble;  //×ó2µÄ¾àÀë
 
@@ -767,6 +770,8 @@ void AiwacParseDistanceJson(void)
 	}
 	printf("\r\nd5str:%s",DistanceValue->valuestring);
 */
+
+end :
 	cJSON_Delete(rootDistance);
 }
 
