@@ -19,7 +19,7 @@ float AIWAC_R_vehicle = 310;  //小车半径，单位：mm
 float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
 float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
 float AIWAC_MOVE_Xtemp = 0;  // 保存  主控下发的 X 速度
-float AIWAC_V_sum = 300;  // 当前的速度，单位  mm/s
+float AIWAC_V_sum = 70;  // 当前的速度，单位  mm/s
 int AIWACTuringTime = 0;
   // 转弯的时间控制
 int moveState = STATE_STOP; // 小车运动 状态，  0：停止，  1：  直走  2： 顺时针转  3：逆时针转 
@@ -662,23 +662,30 @@ void AiwacSupermarketCarControl(void)
 
 
 	// X 前进速度  由  主控下发指令
-	AIWAC_Move_X = AIWAC_MOVE_Xtemp;
+	AIWAC_Move_X = -(AIWAC_MOVE_Xtemp);
 	
 	if ((moveState == STATE_STOP) || (moveState == STATE_STRAIGHT)) // 停止或 直线运动
 	{
 
 		AiwacPositionCorrection();  // 会产生 Y    Z轴的速度
-	}
+	}  
 	else if (moveState == STATE_TURN_RIGHT) // 开始右转弯
 	{
 		
-		if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
+		//if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
+		//{
+
+
+		if ((carDistance.distanceF > 1.2) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
 		{
+		
 			//send()  // 发送  转弯结束的情况
 			moveState = STATE_STOP;
+			printf("\r\n turing over!!!");
 			AIWACTuringTime = 0;
 		}
 		else {
+			printf("\r\n turing  begining!!");
 
 			AIWAC_Move_X = -AIWAC_V_sum;
 			AIWAC_Move_Y = 0;	
@@ -690,8 +697,9 @@ void AiwacSupermarketCarControl(void)
 	}
 	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
 	{
-		if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
+		if ((carDistance.distanceF > 1.2) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
 		{
+		
 			//send()  // 发送  转弯结束的情况
 			moveState = STATE_STOP;
 			AIWACTuringTime = 0;
@@ -706,7 +714,7 @@ void AiwacSupermarketCarControl(void)
 		}
 
 	}
-
+/*
 
 	if (AIWACStop == 1)  //  强制停止
 	{
@@ -715,8 +723,9 @@ void AiwacSupermarketCarControl(void)
 		AIWAC_Move_Z = 0;
 		
 		moveState = STATE_STOP;
+		printf("\r\n stop ,need to restart!!");
 	}
-
+*/
  
 
 	Kinematic_Analysis_SpeedMode_Aiwac(AIWAC_Move_X,AIWAC_Move_Y,AIWAC_Move_Z);//得到控制目标值，进行运动学分析
@@ -755,6 +764,10 @@ void AiwacParseDistanceJson(void)
 	{
 		carDistance.distanceF = DistanceValue->valuedouble;  //前方的距离
 	}
+	else
+	{
+		printf("\r\nF:%f",DistanceValue->valuedouble);
+	}
 
 
 
@@ -768,6 +781,10 @@ void AiwacParseDistanceJson(void)
 	if (DistanceValue->valuedouble >0)
 	{
 		carDistance.distanceL1 = DistanceValue->valuedouble;  //左1的距离
+	}
+	else
+	{
+		printf("\r\nL1:%f",DistanceValue->valuedouble);
 	}
 
 
@@ -783,6 +800,10 @@ void AiwacParseDistanceJson(void)
 	if (DistanceValue->valuedouble > 0)
 	{
 		carDistance.distanceL2 = DistanceValue->valuedouble;  //左2的距离
+	}
+	else
+	{
+		printf("\r\nL2:%f",DistanceValue->valuedouble);
 	}
 
 
@@ -880,7 +901,7 @@ void  AiwacSendState2Master(void)
 
 	strJson=cJSON_Print(root);
 	cJSON_Delete(root); 
-printf("\r\n strJson:%s",strJson);
+//printf("\r\n strJson:%s",strJson);
 	jsonSize = strlen(strJson);
 
 	strSend[2] = jsonSize >> 8;

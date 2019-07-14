@@ -87,7 +87,7 @@ int main(void)
 			APP_Show();	              
 			oled_show();             //===显示屏打开
 		}*/
-		CAN1_SEND();                //CAN发送	
+		CAN1_SEND();                   //CAN发送	
 		PS2_Receive();            //PS2接收
 		//USART_TX();                //串口发送
 		delay_flag=1;	
@@ -99,9 +99,11 @@ int main(void)
 		AiwacParseDistanceJson();
 		//解析并更新 主控下发的指令
 		AiwacParseMOVEOrder();
-		//  给主控发小车 的  状态
+
+		AiwacSupermarketCarControl(); // 里面会对小车状态进行改变，  必须在  给主控发送  数据前
+
+		//  给主控发小车 的  状态，
 		AiwacSendState2Master();
-		AiwacSupermarketCarControl();
 		// 第一次红外测距采集完成
 		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
 		{

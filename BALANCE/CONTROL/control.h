@@ -12,7 +12,7 @@
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
-#define GOALlDISTANCETOL 150  // 毫米，小车中心离  轨道左侧的距离
+#define GOALlDISTANCETOL 70  // 毫米，小车中心离  轨道左侧的距离
 
 // 小车的运动状态
 #define STATE_STOP 0
@@ -21,11 +21,11 @@
 #define STATE_TURN_LEFT 3
 
 
-#define CORRECTION_Y 30  // 小车自校正  Y方向速度 
+#define CORRECTION_Y 40  // 小车自校正  Y方向速度 
 #define CORRECTION_Z 30  // 小车自校正  Z方向速度 
 
-#define CORRECTION_Y_BIG 100  // 小车自校正  Y方向速度     		快速矫正 
-#define CORRECTION_Z_BIG 100  // 小车自校正  Z方向速度      		快速矫正
+#define CORRECTION_Y_BIG 40  // 小车自校正  Y方向速度     		快速矫正 
+#define CORRECTION_Z_BIG 40  // 小车自校正  Z方向速度      		快速矫正
 
 
 #define CORRECTION_Z_DISTANCE 6    // L1  L2  差多少开始矫正  平行
