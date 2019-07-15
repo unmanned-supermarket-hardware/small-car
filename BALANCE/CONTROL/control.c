@@ -22,7 +22,7 @@ float AIWAC_MOVE_Xtemp = 0;  // 保存  主控下发的 X 速度
 float AIWAC_V_sum = 100;  // 当前的速度，单位  mm/s
 int AIWACTuringTime = 0;
   // 转弯的时间控制
-int moveState = STATE_STOP; // 小车运动 状态，  0：停止，  1：  直走  2： 顺时针转  3：逆时针转 
+int moveState = STATE_STOP; // 小车运动 状态，  0：停止 （刚上电  或 刚出弯道），  1：  直走  2： 顺时针转  3：逆时针转 
 int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
 
 
