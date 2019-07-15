@@ -19,7 +19,7 @@ float AIWAC_R_vehicle = 310;  //小车半径，单位：mm
 float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
 float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
 float AIWAC_MOVE_Xtemp = 0;  // 保存  主控下发的 X 速度
-float AIWAC_V_sum = 70;  // 当前的速度，单位  mm/s
+float AIWAC_V_sum = 100;  // 当前的速度，单位  mm/s
 int AIWACTuringTime = 0;
   // 转弯的时间控制
 int moveState = STATE_STOP; // 小车运动 状态，  0：停止，  1：  直走  2： 顺时针转  3：逆时针转 
@@ -676,7 +676,7 @@ void AiwacSupermarketCarControl(void)
 		//{
 
 
-		if ((carDistance.distanceF > 1.2) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
+		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
 		{
 		
 			//send()  // 发送  转弯结束的情况
@@ -697,7 +697,7 @@ void AiwacSupermarketCarControl(void)
 	}
 	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
 	{
-		if ((carDistance.distanceF > 1.2) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
+		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
 		{
 		
 			//send()  // 发送  转弯结束的情况
