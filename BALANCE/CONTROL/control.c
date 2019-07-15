@@ -676,7 +676,7 @@ void AiwacSupermarketCarControl(void)
 		//{
 
 
-		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
+		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
 		{
 		
 			//send()  // 发送  转弯结束的情况
@@ -697,7 +697,7 @@ void AiwacSupermarketCarControl(void)
 	}
 	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
 	{
-		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.04) )
+		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
 		{
 		
 			//send()  // 发送  转弯结束的情况
