@@ -20,7 +20,7 @@ float AIWAC_R_gui = 400;  // 轨道半径，单位：mm
 float AIWAC_Move_X  = 0, AIWAC_Move_Y = 0, AIWAC_Move_Z = 0;   //三轴角度和XYZ轴目标速度
 float AIWAC_MOVE_Xtemp = 0;  // 保存  主控下发的 X 速度
 float AIWAC_V_sum = 100;  // 当前的速度，单位  mm/s
-int AIWACTuringTime = 0;
+int AIWACTuringTime = 0;     
   // 转弯的时间控制
 int moveState = STATE_STOP; // 小车运动 状态，  0：停止 （刚上电  或 刚出弯道），  1：  直走  2： 顺时针转  3：逆时针转 
 int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
@@ -29,7 +29,7 @@ int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
 
 #define X_PARAMETER          (0.5f)               
 #define Y_PARAMETER           (sqrt(3)/2.f)      
-#define L_PARAMETER            (1.0f)         
+#define L_PARAMETER            (1.0f)           
 /**************************************************************************
 函数功能：小车运动数学模型
 入口参数：X Y Z 三轴速度或者位置
@@ -576,7 +576,7 @@ void AiwacPositionCorrection(void)
 
 	//小车离轨道边距的矫正
 	distanceDvalueToL = (carDistance.distanceL1 * 1000 + carDistance.distanceL2 * 1000)/2 - GOALlDISTANCETOL ; 
-	if (distanceDvalueToL >10) // 离轨道过远，超过10mm
+	if (distanceDvalueToL >7) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
 		AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
@@ -593,7 +593,7 @@ void AiwacPositionCorrection(void)
 		}
 		PositionFlag1 = 0;
 	}
-	else if (distanceDvalueToL <-10) // 离轨道过近，太近  m
+	else if (distanceDvalueToL <-7) // 离轨道过近，太近  m
 	{
 		if (distanceDvalueToL < -50)
 		{
