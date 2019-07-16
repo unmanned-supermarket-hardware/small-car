@@ -20,6 +20,18 @@
 #define STATE_TURN_RIGHT 2
 #define STATE_TURN_LEFT 3
 
+#define	CONTROL_MASTER 			1
+#define	ZONE_1_CAR_1 			11	
+#define	ZONE_1_CAR_2 			12	
+#define	ZONE_1_PICKUP_UNIT		13
+#define	ZONE_1_MODULE			14
+#define	ZONE_2_CAR_1 			21	
+#define	ZONE_2_CAR_2 			22	
+#define	ZONE_2_PICKUP_UNIT		23
+#define	ZONE_2_MODULE			24
+#define	SYS_MAX_FLAG			25
+#define	MYSELF_ROLE				ZONE_1_CAR_1   //  每次都需要改
+
 
 #define CORRECTION_Y 40  // 小车自校正  Y方向速度 
 #define CORRECTION_Z 30  // 小车自校正  Z方向速度 

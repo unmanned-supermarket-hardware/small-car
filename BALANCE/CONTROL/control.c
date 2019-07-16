@@ -887,15 +887,17 @@ void  AiwacSendState2Master(void)
 	
 	strSend[0] = '#';
 	strSend[1] = '!';
+	strSend[2] = CONTROL_MASTER;
+	strSend[3] = MYSELF_ROLE;
 
 
 	root=cJSON_CreateObject();
 
-	cJSON_AddNumberToObject(root,"from", 2);
-	cJSON_AddNumberToObject(root,"to", 3);
+	//cJSON_AddNumberToObject(root,"from", MYSELF_ROLE);
+	//cJSON_AddNumberToObject(root,"to", 3);
 	cJSON_AddNumberToObject(root,"msType", 1);
 	cJSON_AddNumberToObject(root,"CorrectState", carDistance.leftPositionOK);
-	cJSON_AddNumberToObject(root,"LDGap",  myabs_double(carDistance.distanceL1 - carDistance.distanceL2));
+	//cJSON_AddNumberToObject(root,"LDGap",  myabs_double(carDistance.distanceL1 - carDistance.distanceL2));
 	cJSON_AddNumberToObject(root,"FDistance", carDistance.distanceF);
 	cJSON_AddNumberToObject(root,"moveState", moveState);
 
@@ -904,14 +906,14 @@ void  AiwacSendState2Master(void)
 //printf("\r\n strJson:%s",strJson);
 	jsonSize = strlen(strJson);
 
-	strSend[2] = jsonSize >> 8;
-	strSend[3] = jsonSize;
+	strSend[4] = jsonSize >> 8;
+	strSend[5] = jsonSize;
 
-	strncpy(strSend+4,strJson,jsonSize);
+	strncpy(strSend+6,strJson,jsonSize);
 
 	// 需要打开
 
-	usart2_sendString(strSend,4 + jsonSize);
+	usart2_sendString(strSend,6 + jsonSize);
 	myfree(strJson);
 
 }

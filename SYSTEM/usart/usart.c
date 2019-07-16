@@ -183,23 +183,24 @@ void uart2_init(u32 pclk2,u32 bound)
 
 
 
-char USART2_startMS = '+';	//保存协议前两字节			#！
-u8 USART2_startGetMS = 0;		// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+
 int	USART2_dataLen = -1;		// json字符串的长度
 u8 USART2_jsonBuF[500]; 			// 在中断的时候 存储接收的json 字符串
 int USART2_jsonDataCount = 0;  //当前接收的  json 字符串数
 u8 USART2_jsonParseBuF[500]; 			//解析的时候用 存储接收的json 字符串，防止跟中断共用一个  字符串 读写 出问题
-int uart2GetLen = 0;
+int uart2ByteNum = 0;  // 串口2 接收符合协议的字节数目
+int MSFrom = 0;  // 数据来自哪
+
 
 void  USART2StateTo0(void )
 {
 	// 恢复初始化
-	USART2_startMS = '+';	//保存协议前两字节			#！
-	USART2_startGetMS = 0; 	// 0：还不能开始，1：接收  数据长度位 2：开始接收json串
+
 	USART2_dataLen = -1;		// json字符串的长度
 	memset(USART2_jsonBuF, 0, sizeof(USART2_jsonBuF));
 	USART2_jsonDataCount = 0;	//当前接收的  json 字符串数
-	uart2GetLen = 0;
+	uart2ByteNum = 0;
+	 MSFrom = 0;
 }
 
 /**************************************************************************
@@ -216,121 +217,113 @@ int USART2_IRQHandler(void)
 		temp=USART2->DR;
 
 
-	// 判断协议数据的开头
-	
-		if (USART2_startGetMS == 0)
+		// 第一个字节
+		if (uart2ByteNum == 0)
 		{
 			if (temp == '#')
 			{
-				USART2_startMS = '#';	
-				uart2GetLen++;
+				uart2ByteNum++;
+				//printf("\r\n get  1!!");
 			}
-			else if ((temp == '!') && (USART2_startMS == '#') && (uart2GetLen ==1)) 
-			{
-				USART2_startGetMS = 1;// 协议标志 前两字节 接收ok	
-			}else if ((temp != '!')  && (USART2_startMS == '#')  && (uart2GetLen == 1)) 
-				{
-					USART2StateTo0();
-				}
+				return ;	
 		}
-		else if (USART2_startGetMS == 1)// 接收 协议数据  内 json 字符串的长度
+
+		// 第二个字节
+		if (uart2ByteNum == 1)
 		{
-			if (USART2_dataLen == -1)
+			if (temp == '!')
+			{
+				uart2ByteNum++;
+				//printf("\r\n get  2!!");
+				return ;	
+			}
+			else
+			{
+				uart2ByteNum = 0;
+				//printf("\r\n get  2   FAILED!!");
+				return ;
+			}
+					
+		}
+
+		// 接收 TO
+		// 第三个字节
+		if (uart2ByteNum == 2)
+			{
+				if (temp == MYSELF_ROLE)
+				{
+					uart2ByteNum++;
+					//printf("\r\n get  my data!!");
+					return ;
+				}
+				else
+				{
+					uart2ByteNum = 0;
+					//printf("\r\n get  3   FAILED!!");
+					return ;
+				}
+
+			}
+
+		// 接收 FROM
+		// 第四个字节
+		if (uart2ByteNum == 3)
+			{
+				if (temp < SYS_MAX_FLAG)
+				{
+					MSFrom = temp;
+					uart2ByteNum++;
+					return ;
+				}
+				else
+				{
+					uart2ByteNum = 0;
+					return ;
+				}
+
+			}
+
+
+		// 接收 json Len    高字节
+		// 第五个字节
+		if (uart2ByteNum == 4)
 			{
 				USART2_dataLen = temp*256;
-			}else if(USART2_dataLen != -1)
+				uart2ByteNum++;
+				return ;
+			}
+		
+		// 接收 json Len    低字节
+		// 第六个字节 
+		if (uart2ByteNum == 5)
 			{
 				USART2_dataLen = USART2_dataLen + temp;
-				USART2_startGetMS =2;				
-			}		
-		}else if (USART2_startGetMS == 2)	// // 开始接收	Json 串
+				uart2ByteNum++;
+				//printf("\r\n get  6!!");
+				return ;
+			}
+
+		// 开始接受
+		if (uart2ByteNum == 6)
 		{
-			
 			USART2_jsonBuF[USART2_jsonDataCount] = temp;
 			USART2_jsonDataCount++;
 			
 			if (USART2_jsonDataCount == USART2_dataLen)  //  本次接收完毕
 			{
-
-				//usart2_sendString(USART2_jsonBuF, USART2_dataLen);
-
-				strcpy(USART2_jsonParseBuF,USART2_jsonBuF);
+				if (MSFrom == CONTROL_MASTER)
+					{
+						strcpy(USART2_jsonParseBuF, USART2_jsonBuF);
+					}
 				
-				 USART2StateTo0();
-				
+				//printf("\r\nUSART3_jsonParseBuF:%s",USART2_jsonParseBuF);
+				USART2StateTo0();	
 			}
+
+			return ;
 		}
+
 				
-
-
-
-		/*
-	  if(Usart_Receive==0x4B) Turn_Flag=1;  //进入转向控制界面
-	  else	if(Usart_Receive==0x49||Usart_Receive==0x4A) 	 Turn_Flag=0;	//方向控制界面
-		
-		if(Run_Flag==0)//速度控制模式
-		{			
-				if(Turn_Flag==0)//速度控制模式
-				{
-						if(Usart_Receive>=0x41&&Usart_Receive<=0x48)  
-						{	
-							Flag_Direction=Usart_Receive-0x40;
-						}
-						else	if(Usart_Receive<=8)   
-						{			
-							Flag_Direction=Usart_Receive;
-						}	
-						else  Flag_Direction=0;
-				}
-				else	 if(Turn_Flag==1)//如果进入了转向控制界面
-				 {
-				 if(Usart_Receive==0x43) Flag_Left=0,Flag_Right=1;    
-				 else if(Usart_Receive==0x47) Flag_Left=1,Flag_Right=0;
-				 else Flag_Left=0,Flag_Right=0;
-				 if(Usart_Receive==0x41||Usart_Receive==0x45)Flag_Direction=Usart_Receive-0x40;
-				 else  Flag_Direction=0;
-				 }
-	  }	
-		//以下是与APP调试界面通讯
-		if(Usart_Receive==0x7B) Flag_PID=1;   //APP参数指令起始位
-		if(Usart_Receive==0x7D) Flag_PID=2;   //APP参数指令停止位
-
-		 if(Flag_PID==1)  //采集数据
-		 {
-			Receive[i]=Usart_Receive;
-			i++;
-		 }
-		 if(Flag_PID==2)  //分析数据
-		 {
-			     if(Receive[3]==0x50) 	 PID_Send=1;
-					 else  if(Receive[3]==0x57) 	 Flash_Send=1;
-					 else  if(Receive[1]!=0x23) 
-					 {								
-						for(j=i;j>=4;j--)
-						{
-						  Data+=(Receive[j-1]-48)*pow(10,i-j);
-						}
-						switch(Receive[1])
-						 {
-							 case 0x30:  RC_Velocity=Data;break;
-							 case 0x31:  RC_Position=Data;break;
-							 case 0x32:  Position_KP=Data;break;
-							 case 0x33:  Position_KI=Data;break;
-							 case 0x34:  Position_KD=Data;break;
-							 case 0x35:  Velocity_KP=Data;break;
-							 case 0x36:  Velocity_KI=Data;break;
-							 case 0x37:  break; //预留
-							 case 0x38:  break; //预留
-						 }
-					 }				 
-					 Flag_PID=0;//相关标志位清零
-					 i=0;
-					 j=0;
-					 Data=0;
-					 memset(Receive, 0, sizeof(u8)*50);//数组清零
-		 } 	
-
-		 */
    }
 return 0;	
 }
