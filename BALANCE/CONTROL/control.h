@@ -14,7 +14,7 @@
 #define DIFFERENCE 100
 #define GOALlDISTANCETOL 70  // 毫米，小车中心离  轨道左侧的距离
 
-// 小车的运动状态
+// 小车的运动状态  
 #define STATE_STOP 0
 #define STATE_STRAIGHT 1
 #define STATE_TURN_RIGHT 2
