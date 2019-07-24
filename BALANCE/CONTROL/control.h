@@ -43,7 +43,13 @@ struct CarDistance {
 extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
 extern struct CarDistance carDistance;
 extern int intoCurve;
-extern u8 jsonParseBuF[500], USART2_jsonParseBuF[500];
+extern u8 jsonParseBuF[300], USART2_jsonParseBuF[300];
+
+
+
+extern unsigned char const crc8_tab[256];
+unsigned	char crc8_calculate(unsigned char * ucPtr, unsigned char ucLen) ;
+
 
 int EXTI15_10_IRQHandler(void);
 void Set_Pwm(int motor_a,int motor_b,int motor_c);
