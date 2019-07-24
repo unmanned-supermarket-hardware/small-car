@@ -752,6 +752,11 @@ void AiwacParseDistanceJson(void)
 	}
 	
 	rootDistance = cJSON_Parse(jsonParseBuF);
+		if (!rootDistance) 
+		{
+			printf("Error before: [%s]\n",cJSON_GetErrorPtr());
+		return;
+	}
 
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "F");  //  需要确定  距离 标签       	前方的 
 	if (!DistanceValue) {
@@ -807,7 +812,7 @@ void AiwacParseDistanceJson(void)
 	}
 
 
-/*
+
 // 测试
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "d2str");  //  需要确定  距离 标签			左2
 	if (!DistanceValue) {
@@ -829,7 +834,7 @@ void AiwacParseDistanceJson(void)
 	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
 	}
 	printf("\r\nd5str:%s",DistanceValue->valuestring);
-*/
+
 
 end :
 	cJSON_Delete(rootDistance);
@@ -853,6 +858,12 @@ void AiwacParseMOVEOrder(void)
 	}
 	
 	rootMoveOrder = cJSON_Parse(USART2_jsonParseBuF);
+	
+	if (!rootMoveOrder) 
+	{
+		printf("Error before: [%s]\n",cJSON_GetErrorPtr());
+		return;
+	}
 
 	orderValue = cJSON_GetObjectItem(rootMoveOrder, "X_V");  //  X轴速度 
 	if (!orderValue) {
@@ -863,7 +874,7 @@ void AiwacParseMOVEOrder(void)
 	AIWAC_MOVE_Xtemp = orderValue->valuedouble;  //X轴速度 
 
 
-	orderValue = cJSON_GetObjectItem(rootMoveOrder, "moveState");  //  运动指令
+	orderValue = cJSON_GetObjectItem(rootMoveOrder, "mo");  //  运动指令
 	if (!orderValue) {
 	   // printf("get name faild !\n");
 	   // printf("Error before: [%s]\n", cJSON_GetErrorPtr());
@@ -891,15 +902,14 @@ void  AiwacSendState2Master(void)
 
 	root=cJSON_CreateObject();
 
-	cJSON_AddNumberToObject(root,"from", 2);
-	cJSON_AddNumberToObject(root,"to", 3);
-	cJSON_AddNumberToObject(root,"msType", 1);
-	cJSON_AddNumberToObject(root,"CorrectState", carDistance.leftPositionOK);
-	cJSON_AddNumberToObject(root,"LDGap",  myabs_double(carDistance.distanceL1 - carDistance.distanceL2));
-	cJSON_AddNumberToObject(root,"FDistance", carDistance.distanceF);
-	cJSON_AddNumberToObject(root,"moveState", moveState);
+	cJSON_AddNumberToObject(root,"Co", carDistance.leftPositionOK);
 
-	strJson=cJSON_Print(root);
+	cJSON_AddNumberToObject(root,"FD", carDistance.distanceF);
+	cJSON_AddNumberToObject(root,"mo", moveState);
+
+	strJson=cJSON_PrintUnformatted(root);
+
+	
 	cJSON_Delete(root); 
 //printf("\r\n strJson:%s",strJson);
 	jsonSize = strlen(strJson);
@@ -909,9 +919,12 @@ void  AiwacSendState2Master(void)
 
 	strncpy(strSend+4,strJson,jsonSize);
 
+	strSend[jsonSize+4] = '*';
+	strSend[jsonSize+5] = '+';
+
 	// 需要打开
 
-	usart2_sendString(strSend,4 + jsonSize);
+	usart2_sendString(strSend,6 + jsonSize);
 	myfree(strJson);
 
 }

@@ -245,7 +245,7 @@ int USART2_IRQHandler(void)
 			}		
 		}else if (USART2_startGetMS == 2)	// // 开始接收	Json 串
 		{
-			
+			/*
 			USART2_jsonBuF[USART2_jsonDataCount] = temp;
 			USART2_jsonDataCount++;
 			
@@ -254,11 +254,75 @@ int USART2_IRQHandler(void)
 
 				//usart2_sendString(USART2_jsonBuF, USART2_dataLen);
 
+				memset(USART2_jsonParseBuF, 0, sizeof(USART2_jsonParseBuF));
 				strcpy(USART2_jsonParseBuF,USART2_jsonBuF);
 				
 				 USART2StateTo0();
 				
 			}
+
+
+			if (USART2_jsonDataCount>499)  //  可能的超出情况
+			{
+				USART2StateTo0();
+
+			}
+
+
+
+			*/
+
+
+			
+			USART2_jsonDataCount++;
+						
+			if (USART2_jsonDataCount>250)  //  可能的超出情况
+			{
+				USART2StateTo0();
+				return;
+			}
+						
+			if (USART2_jsonDataCount <= USART2_dataLen)
+			{
+				USART2_jsonBuF[USART2_jsonDataCount-1] = temp;
+				return;
+			}
+
+
+
+
+			// 末尾第一次校验标签
+			if (USART2_jsonDataCount ==(USART2_dataLen + 1))
+				{
+					if (temp != '*')
+						{
+							USART2StateTo0();
+							return;
+						}
+				}
+
+			// 末尾第二次校验标签
+			if (USART2_jsonDataCount ==(USART2_dataLen + 2))
+				{
+					if (temp != '+')
+					{
+						USART2StateTo0();
+						return;
+					}
+					else
+					{
+						memset(USART2_jsonParseBuF, 0, sizeof(USART2_jsonParseBuF));
+						strcpy(USART2_jsonParseBuF,USART2_jsonBuF);
+						USART2StateTo0();	
+						
+					}
+		
+				}
+
+
+
+
+			
 		}
 				
 

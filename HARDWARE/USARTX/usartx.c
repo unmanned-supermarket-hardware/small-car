@@ -139,11 +139,19 @@ int USART3_IRQHandler(void)
 			{
 
 				//usart3_sendString(jsonBuF, dataLen);
+				memset(jsonParseBuF, 0, sizeof(jsonParseBuF));
 
 				strcpy(jsonParseBuF,jsonBuF);
 				
 				USART3StateTo0();
 	
+			}
+
+
+			if (jsonDataCount>499)  //  可能的超出情况
+			{
+					USART3StateTo0();
+
 			}
 		}
 		
