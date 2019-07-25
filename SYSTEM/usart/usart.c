@@ -235,14 +235,16 @@ int USART2_IRQHandler(void)
 			{
 				uart2ByteNum++;
 				//printf("\r\n get 2!!");
-				return ;
+				
 			}
 			else
 			{
 				uart2ByteNum = 0;
 				//printf("\r\n get 2 FAILED!!");
-				return ;
+				
 			}
+
+			return ;
 		}
 		
 		
@@ -289,8 +291,10 @@ int USART2_IRQHandler(void)
 					if (temp != '*')
 						{
 							USART2StateTo0();
-							return;
+							
 						}
+
+					return;
 				}
 
 
@@ -298,16 +302,18 @@ int USART2_IRQHandler(void)
 			if (USART2_jsonDataCount ==(USART2_dataLen + 2))
 				{
 					uart2CRC = temp;
+
+					return;
 				}
 
 
 			// 末尾第二次校验标签
 			if (USART2_jsonDataCount ==(USART2_dataLen + 3))
 				{
-					if (temp != '+')
+					if (temp != '&')
 					{
 						USART2StateTo0();
-						return;
+						
 					}
 					else
 					{
@@ -315,12 +321,15 @@ int USART2_IRQHandler(void)
 							{
 								memset(USART2_jsonParseBuF, 0, sizeof(USART2_jsonParseBuF));
 								strcpy(USART2_jsonParseBuF,USART2_jsonBuF);
+								printf("\r\n11");
 
 							}
 						
 						USART2StateTo0();	
 						
 					}
+
+					return;
 		
 				}
 			return ;

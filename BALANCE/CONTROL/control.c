@@ -960,7 +960,8 @@ void  AiwacSendState2Master(void)
 
 	strSend[jsonSize+4] = '*';
 	strSend[jsonSize+5] = crc8_calculate(strJson, jsonSize);
-	strSend[jsonSize+6] = '+';
+	strSend[jsonSize+6] = '&';
+
 
 	// 需要打开
 
