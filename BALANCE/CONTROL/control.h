@@ -5,10 +5,11 @@
 #include "cJSON.h"
 #include "string.h"
 
-  /**************************************************************************
-作者：平衡小车之家
-我的淘宝小店：http://shop114407458.taobao.com/
-**************************************************************************/
+// 区分上下车
+#define CAR_UP 1 
+#define CAR_DOWN 2
+#define CAR_ID CAR_UP 
+
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
@@ -19,6 +20,13 @@
 #define STATE_STRAIGHT 1
 #define STATE_TURN_RIGHT 2
 #define STATE_TURN_LEFT 3
+
+
+
+#define X_PARAMETER          (0.5f)               
+#define Y_PARAMETER           (sqrt(3)/2.f)      
+#define L_PARAMETER            (1.0f)        
+
 
 
 #define CORRECTION_Y 40  // 小车自校正  Y方向速度 

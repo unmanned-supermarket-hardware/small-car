@@ -2,10 +2,7 @@
 #include "filter.h"	
 #include <math.h>
 
-  /**************************************************************************
-作者：平衡小车之家
-我的淘宝小店：http://shop114407458.taobao.com/
-**************************************************************************/
+
 u8 Flag_Target,Flag_Change;                             //相关标志位
 u8 temp1;                                               //临时变量
 float Voltage_Count,Voltage_All;  //电压采样相关变量
@@ -27,9 +24,7 @@ int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
 
 
 
-#define X_PARAMETER          (0.5f)               
-#define Y_PARAMETER           (sqrt(3)/2.f)      
-#define L_PARAMETER            (1.0f)        
+
 
 
 
@@ -92,6 +87,13 @@ void Kinematic_Analysis(float Vx,float Vy,float Vz)
 void Kinematic_Analysis_SpeedMode_Aiwac(float Vx,float Vy,float Vz)
 {
 	float Target_A_Speed, Target_B_Speed, Target_C_Speed;
+
+	// 上车需要反过来,Z  和X 需要反
+	if(CAR_ID == CAR_UP)
+	{
+		Vz = -Vz;
+		Vx = -Vx;
+	}
 	
 	Target_A_Speed   = Vx + L_PARAMETER*Vz;
 	Target_B_Speed   = -X_PARAMETER*Vx + Y_PARAMETER*Vy + L_PARAMETER*Vz;
