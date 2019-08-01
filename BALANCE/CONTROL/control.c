@@ -713,10 +713,6 @@ void AiwacSupermarketCarControl(void)
 	else if (moveState == STATE_TURN_RIGHT) // 开始右转弯
 	{
 		
-		//if (AIWACTuringTime >(AIWAC_R_gui*PI*50/AIWAC_V_sum))  // 转弯的时间够了
-		//{
-
-
 		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
 		{
 		
@@ -731,19 +727,17 @@ void AiwacSupermarketCarControl(void)
 			AIWAC_Move_X = -AIWAC_V_sum;
 			AIWAC_Move_Y = 0;	
 			AIWAC_Move_Z = (AIWAC_R_vehicle/AIWAC_R_gui)*(-AIWAC_Move_X);	
-			
-			AIWACTuringTime++; //每次增加都是 10ms
+
 		}
 
 	}
 	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
 	{
-		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
+		if ((carDistance.distanceB > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
 		{
 		
 			//send()  // 发送  转弯结束的情况
 			moveState = STATE_STOP;
-			AIWACTuringTime = 0;
 		}
 		else {
 
@@ -751,10 +745,11 @@ void AiwacSupermarketCarControl(void)
 			AIWAC_Move_Y = 0;	
 			AIWAC_Move_Z = (AIWAC_R_vehicle/AIWAC_R_gui)*(-AIWAC_Move_X);	
 			
-			AIWACTuringTime++; //每次增加都是 10ms
 		}
 
 	}
+
+	
 /*
 
 	if (AIWACStop == 1)  //  强制停止

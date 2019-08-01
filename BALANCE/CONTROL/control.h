@@ -42,6 +42,7 @@
 // 全局存储  小车测距的数据
 struct CarDistance {
 	double distanceF;
+	double distanceB;
 	double distanceL1;
 	double distanceL2;
 	int leftPositionOK;   // 1: 自矫正ok ,0:自矫正未完成
