@@ -812,6 +812,27 @@ void AiwacParseDistanceJson(void)
 
 
 
+	DistanceValue = cJSON_GetObjectItem(rootDistance, "B");  //  需要确定  距离 标签       	后方的 
+	if (!DistanceValue) {
+	   // printf("get name faild !\n");
+	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+	    goto end;
+	}
+	//printf("\r\n  (DistanceValue->valuedouble < 0) :%d  DistanceValue->valuedouble:%f",(DistanceValue->valuedouble < 0), DistanceValue->valuedouble);
+	if (DistanceValue->valuedouble > 0)
+	{
+		carDistance.distanceB = DistanceValue->valuedouble;  //后方的距离
+	}
+	else
+	{
+		printf("\r\nB:%f",DistanceValue->valuedouble);
+	}
+
+
+	
+
+
+
 	DistanceValue = cJSON_GetObjectItem(rootDistance, "L1");  //  需要确定  距离 标签			左1
 	if (!DistanceValue) {
 	    //printf("get name faild !\n");
@@ -941,6 +962,7 @@ void  AiwacSendState2Master(void)
 	cJSON_AddNumberToObject(root,"Co", carDistance.leftPositionOK);
 
 	cJSON_AddNumberToObject(root,"FD", carDistance.distanceF);
+	cJSON_AddNumberToObject(root,"BD", carDistance.distanceB);
 	cJSON_AddNumberToObject(root,"mo", moveState);
 
 	strJson=cJSON_PrintUnformatted(root);

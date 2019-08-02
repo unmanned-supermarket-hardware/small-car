@@ -65,6 +65,7 @@ int main(void)
 	// 初始化  测距的  结构体
 	carDistance.start = 0;  // 代表 还未得到距离值
 	carDistance.distanceF = 0;
+	carDistance.distanceB = 0;
 	carDistance.distanceL1 = 0;
 	carDistance.distanceL2 = 0;
 	carDistance.leftPositionOK = 0;
@@ -95,7 +96,7 @@ int main(void)
 		while(delay_flag);	       //通过MPU6050的INT中断实现的50ms精准延时				
 
 
-		// 解析并更新存储的 三个方向的距离
+		// 解析并更新存储的 四个方向的距离
 		AiwacParseDistanceJson();
 		//解析并更新 主控下发的指令
 		AiwacParseMOVEOrder();
@@ -106,7 +107,7 @@ int main(void)
 
 
 		// 第一次红外测距采集完成
-		if ( (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
+		if ( (carDistance.distanceB != 0) && (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
 		{
 			carDistance.start = 1;
 		}
@@ -117,7 +118,7 @@ int main(void)
 		{
 		//usart2_sendString("~1234",5);
 		 //usart2_send('1');
-			printf("\r\n F:%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceL1, carDistance.distanceL2);
+			printf("\r\n F:%f B：%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceB, carDistance.distanceL1, carDistance.distanceL2);
 
 
 			timeNumDistance = 0;
