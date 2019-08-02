@@ -91,8 +91,7 @@ void Kinematic_Analysis_SpeedMode_Aiwac(float Vx,float Vy,float Vz)
 	// 上车需要反过来,Z  和X 需要反
 	if(CAR_ID == CAR_UP)
 	{
-		Vz = -Vz;
-		Vx = -Vx;
+		Vy = -Vy;
 	}
 	
 	Target_A_Speed   = Vx + L_PARAMETER*Vz;
@@ -621,7 +620,7 @@ void AiwacPositionCorrection(void)
 	{
 		//  轨道  垂直方向  提供下速度
 		AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
-
+		printf("\r\n close to track");
 
 		if (distanceDvalueToL > 50)
 		{
@@ -636,6 +635,7 @@ void AiwacPositionCorrection(void)
 	}
 	else if (distanceDvalueToL <-7) // 离轨道过近，太近  m
 	{
+		printf("\r\n go far from  track");
 		if (distanceDvalueToL < -50)
 		{
 			AIWAC_Move_Y = (CORRECTION_Y_BIG);
@@ -643,7 +643,7 @@ void AiwacPositionCorrection(void)
 		else
 		{
 			//  轨道  垂直方向  提供下速度
-			AIWAC_Move_Y = (CORRECTION_Y);  // 向轨道 靠近， mm/s
+			AIWAC_Move_Y = (CORRECTION_Y);  // 向轨道 离远， mm/s
 		}
 		
 		PositionFlag1 = 0;
@@ -661,11 +661,13 @@ void AiwacPositionCorrection(void)
 	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >CORRECTION_Z_DISTANCE )  //该逆时针旋转
 	{
 		// Z轴加上 逆时针的  速度
+		printf("\r\n need ni");
 		AIWAC_Move_Z =  -(CORRECTION_Z);   // mm/s
 		PositionFlag2 = 0;
 	}
 	else if ((carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000) < -(CORRECTION_Z_DISTANCE)) //该顺时针旋转
 	{
+		printf("\r\n need shun"); 
 		// Z轴加上 顺时针的  速度 
 		AIWAC_Move_Z =  (CORRECTION_Z);  // mm/s
 		PositionFlag2= 0;
