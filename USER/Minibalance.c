@@ -98,7 +98,7 @@ int main(void)
 
 		// 解析并更新存储的 四个方向的距离
 		AiwacParseDistanceJson();
-		//解析并更新 主控下发的指令
+		//解析并更新 主控下发的指令,反馈小车情况
 		AiwacParseMOVEOrder();
 
 		AiwacSupermarketCarControl(); // 里面会对小车状态进行改变，  必须在  给主控发送  数据前

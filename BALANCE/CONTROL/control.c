@@ -88,7 +88,7 @@ void Kinematic_Analysis_SpeedMode_Aiwac(float Vx,float Vy,float Vz)
 {
 	float Target_A_Speed, Target_B_Speed, Target_C_Speed;
 
-	// 上车需要反过来,Z  和X 需要反
+	// 上车需要反过来，Y 需要反
 	if(CAR_ID == CAR_UP)
 	{
 		Vy = -Vy;
@@ -702,7 +702,17 @@ void AiwacSupermarketCarControl(void)
 {
 	AIWAC_Move_Y = 0;
 	AIWAC_Move_Z = 0;
+	AIWAC_Move_X = 0;
 
+
+	/*	
+	// 还未获得距离值，不进行矫正
+	if (carDistance.start == 0 )
+	{
+		return;
+	}
+
+	*/
 
 	// X 前进速度  由  主控下发指令
 	AIWAC_Move_X = -(AIWAC_MOVE_Xtemp);
@@ -781,7 +791,7 @@ void AiwacSupermarketCarControl(void)
 **************************************************************************/
 void AiwacParseDistanceJson(void)
 {
-	cJSON *rootDistance, *DistanceValue;  //  不晓得name需不需要回收
+	cJSON *rootDistance, *DistanceValue;  
 
 
 	if (jsonParseBuF[0] == '-' ) //  还未收到 距离信息
@@ -915,32 +925,49 @@ void AiwacParseMOVEOrder(void)
 	{
 		return;
 	}
-	
+
 	rootMoveOrder = cJSON_Parse(USART2_jsonParseBuF);
-	
 	if (!rootMoveOrder) 
 	{
 		printf("Error before: [%s]\n",cJSON_GetErrorPtr());
 		return;
 	}
 
-	orderValue = cJSON_GetObjectItem(rootMoveOrder, "X_V");  //  X轴速度 
+
+	orderValue = cJSON_GetObjectItem(root, "businessType");  //  businessType
 	if (!orderValue) {
-	    //printf("get name faild !\n");
-	    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
-	    goto end ;
+		//printf("get name faild !\n");
+		//printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+		goto end;
 	}
-	AIWAC_MOVE_Xtemp = orderValue->valuedouble;  //X轴速度 
 
 
-	orderValue = cJSON_GetObjectItem(rootMoveOrder, "mo");  //  运动指令
-	if (!orderValue) {
-	   // printf("get name faild !\n");
-	   // printf("Error before: [%s]\n", cJSON_GetErrorPtr());
-	   goto end ;
-	}
-	moveState = orderValue->valueint;  //运动指令
+	// 主控查询小车情况,小车反馈
+	if ((strcmp(orderValue.valuestring, "0007")==0) || (strcmp(orderValue.valuestring, "0008")==0)) 
+		{
+			AiwacFeedback2Master();  // 给主控反馈小车情况
+		}
+	else if ((strcmp(orderValue.valuestring, "0009")==0)  || (strcmp(orderValue.valuestring, "0010")==0) ) //  主控控制小车运动及状态
+		{
+			orderValue = cJSON_GetObjectItem(rootMoveOrder, "X_V");  //  X轴速度 
+			if (!orderValue) {
+			    //printf("get name faild !\n");
+			    //printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+			    goto end ;
+			}
+			AIWAC_MOVE_Xtemp = orderValue->valuedouble;  //X轴速度 
+
+
+			orderValue = cJSON_GetObjectItem(rootMoveOrder, "mo");  //  运动指令
+			if (!orderValue) {
+			   // printf("get name faild !\n");
+			   // printf("Error before: [%s]\n", cJSON_GetErrorPtr());
+			   goto end ;
+			}
+			moveState = orderValue->valueint;  //运动指令
+		}
 	
+
 end :
 	cJSON_Delete(rootMoveOrder);
 }
@@ -960,6 +987,16 @@ void  AiwacSendState2Master(void)
 
 
 	root=cJSON_CreateObject();
+	
+	if (CAR_ID == CAR_UP)
+	{
+		cJSON_AddStringToObject(root, "businessType", "0011");
+	}
+	else
+	{
+		cJSON_AddStringToObject(root, "businessType", "0012");
+	}
+
 
 	cJSON_AddNumberToObject(root,"Co", carDistance.leftPositionOK);
 
@@ -990,4 +1027,72 @@ void  AiwacSendState2Master(void)
 	myfree(strJson);
 
 }
+
+
+
+/**************************************************************************
+函数功能：		小车给主控反馈当前复位情况
+入口参数：		无
+返回  值：		无
+**************************************************************************/
+void  AiwacFeedback2Master(void)
+{
+
+	u16 jsonSize;
+	cJSON *root;
+	char *strJson;
+	char strSend[300];
+	
+	strSend[0] = '#';
+	strSend[1] = '!';
+
+
+	root=cJSON_CreateObject();
+
+	if (CAR_ID == CAR_UP)
+	{
+		cJSON_AddStringToObject(root, "businessType", "0007");
+	}
+	else
+	{
+		cJSON_AddStringToObject(root, "businessType", "0008");
+	}
+
+	if ((carDistance.start == 1))
+		{
+			cJSON_AddNumberToObject(root, "errorCode", 200);
+			cJSON_AddStringToObject(root, "errorDesc", "ok");
+		}
+	else
+		{
+			cJSON_AddNumberToObject(root, "errorCode", 199);
+			cJSON_AddStringToObject(root, "errorDesc", "the distance measurement  does not work!!!");
+		}
+	
+
+
+	strJson=cJSON_PrintUnformatted(root);
+
+	
+	cJSON_Delete(root); 
+//printf("\r\n strJson:%s",strJson);
+	jsonSize = strlen(strJson);
+
+	strSend[2] = jsonSize >> 8;
+	strSend[3] = jsonSize;
+
+	strncpy(strSend+4,strJson,jsonSize);
+
+	strSend[jsonSize+4] = '*';
+	strSend[jsonSize+5] = crc8_calculate(strJson, jsonSize);
+	strSend[jsonSize+6] = '&';
+
+
+	// 需要打开
+
+	usart2_sendString(strSend,7 + jsonSize);
+	myfree(strJson);
+
+}
+
 

@@ -89,6 +89,7 @@ void AiwacParseDistanceJson(void);
 void AiwacParseMOVEOrder(void);
 void  AiwacSendState2Master(void);
 double myabs_double(double a);
+void  AiwacFeedback2Master(void);
 
 
 #endif
