@@ -25,6 +25,9 @@ int RC_Velocity=30,RC_Position=1000;         //设置遥控的速度和位置值
 int PS2_LX,PS2_LY,PS2_RX,PS2_RY,PS2_KEY;  
 int Gryo_Z;
 
+int timeAiwac = 0;
+int timeSys = 0;
+int timePrintf = 0;
 
 int main(void)
 { 
@@ -77,17 +80,60 @@ int main(void)
 
 	while(1)
 	{		
+
+		if (timeSys >= 10)  // 10*5   50ms
+		{
+			if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
+			{
+				Flash_Write();	
+				Flash_Send=0;	
+			}	
+			CAN1_SEND();                   //CAN发送	
+			PS2_Receive();            //PS2接收
+			timeSys =0;
+		}
+
+		
+
+		if (timeAiwac >= 16)  //16*5   80ms
+		{
+			
+			// 解析并更新存储的 四个方向的距离
+			AiwacParseDistanceJson();
+			//解析并更新 主控下发的指令,反馈小车情况
+			AiwacParseMOVEOrder();
+			// 里面会对小车状态进行改变，	必须在  给主控发送	数据前
+			AiwacSupermarketCarControl(); 
+			//  给主控发小车 的  状态，
+			AiwacSendState2Master();
+			
+			timeAiwac = 0;
+
+			// 第一次红外测距采集完成
+			if ( (carDistance.distanceB != 0) && (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
+			{
+				carDistance.start = 1;
+			}
+
+		}
+
+
+
+		if (timePrintf >200)  // 1000ms
+		{
+			printf("\r\n F:%f B：%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceB, carDistance.distanceL1, carDistance.distanceL2);
+			timePrintf =0;
+		}
+
+
+
+	/*
 		if(Flash_Send==1)          //写入PID参数到Flash,由app控制该指令
 		{
 			Flash_Write();	
 			Flash_Send=0;	
 		}	
-		/*
-		if(Flag_Show==0)           //使用MiniBalance APP和OLED显示屏
-		{
-			APP_Show();	              
-			oled_show();             //===显示屏打开
-		}*/
+
 		CAN1_SEND();                   //CAN发送	
 		PS2_Receive();            //PS2接收
 		//USART_TX();                //串口发送
@@ -106,11 +152,7 @@ int main(void)
 		AiwacSendState2Master();
 
 
-		// 第一次红外测距采集完成
-		if ( (carDistance.distanceB != 0) && (carDistance.distanceF != 0) && (carDistance.distanceL1 != 0) && (carDistance.distanceL2 != 0))
-		{
-			carDistance.start = 1;
-		}
+
 
 		// 500ms 矫正一次  当前位置
 		timeNumDistance++;
@@ -123,5 +165,12 @@ int main(void)
 
 			timeNumDistance = 0;
 		}
+
+	*/
+
+
+
+
+		
 	} 
 }

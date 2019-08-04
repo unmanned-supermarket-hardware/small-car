@@ -137,6 +137,11 @@ int EXTI15_10_IRQHandler(void)
 	 if(INT==0)		
 	{     
 		  EXTI->PR=1<<15;                                                      //清除LINE5上的中断标志位  		
+
+		  timeSys++;
+		  timeAiwac++;
+		  timePrintf++;
+		  
 		  Flag_Target=!Flag_Target;
 		  if(delay_flag==1)
 			 {
@@ -623,7 +628,8 @@ void AiwacPositionCorrection(void)
 		printf("\r\n close to track");
 
 		if (distanceDvalueToL > 50)
-		{
+		{
+
 			AIWAC_Move_Y = -(CORRECTION_Y_BIG);
 		}
 		else
@@ -637,7 +643,8 @@ void AiwacPositionCorrection(void)
 	{
 		printf("\r\n go far from  track");
 		if (distanceDvalueToL < -50)
-		{
+		{
+
 			AIWAC_Move_Y = (CORRECTION_Y_BIG);
 		}
 		else
@@ -934,7 +941,7 @@ void AiwacParseMOVEOrder(void)
 	}
 
 
-	orderValue = cJSON_GetObjectItem(root, "businessType");  //  businessType
+	orderValue = cJSON_GetObjectItem(rootMoveOrder, "businessType");  //  businessType
 	if (!orderValue) {
 		//printf("get name faild !\n");
 		//printf("Error before: [%s]\n", cJSON_GetErrorPtr());
@@ -943,11 +950,11 @@ void AiwacParseMOVEOrder(void)
 
 
 	// 主控查询小车情况,小车反馈
-	if ((strcmp(orderValue.valuestring, "0007")==0) || (strcmp(orderValue.valuestring, "0008")==0)) 
+	if ((strcmp(orderValue->valuestring, "0007")==0) || (strcmp(orderValue->valuestring, "0008")==0)) 
 		{
 			AiwacFeedback2Master();  // 给主控反馈小车情况
 		}
-	else if ((strcmp(orderValue.valuestring, "0009")==0)  || (strcmp(orderValue.valuestring, "0010")==0) ) //  主控控制小车运动及状态
+	else if ((strcmp(orderValue->valuestring, "0009")==0)  || (strcmp(orderValue->valuestring, "0010")==0) ) //  主控控制小车运动及状态
 		{
 			orderValue = cJSON_GetObjectItem(rootMoveOrder, "X_V");  //  X轴速度 
 			if (!orderValue) {
@@ -970,6 +977,8 @@ void AiwacParseMOVEOrder(void)
 
 end :
 	cJSON_Delete(rootMoveOrder);
+
+	USART2_jsonParseBuF[0] = '-' ;		// 保证一个指令只解析一次
 }
 
 

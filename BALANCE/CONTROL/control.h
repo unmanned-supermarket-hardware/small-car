@@ -23,6 +23,11 @@
 
 
 
+extern int timeAiwac;
+extern int timeSys;
+extern int timePrintf;
+
+
 #define X_PARAMETER          (0.5f)               
 #define Y_PARAMETER           (sqrt(3)/2.f)      
 #define L_PARAMETER            (1.0f)        
