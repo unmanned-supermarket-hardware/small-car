@@ -22,7 +22,7 @@ int AIWACTuringTime = 0;
 int moveState = STATE_STOP; // 小车运动 状态，  0：停止 （刚上电  或 刚出弯道），  1：  直走  2： 顺时针转  3：逆时针转 
 int AIWACStop = 0;		//当三方距离  危险时，紧急停止   重新上电才行
 
-
+int VoltageFlag = 1; // 电池电压情况，1：ok，0：no
 
 
 
@@ -169,6 +169,7 @@ int EXTI15_10_IRQHandler(void)
 		if(++Voltage_Count==100) Voltage=Voltage_All/100,Voltage_All=0,Voltage_Count=0;//求平均值 获取电池电压	       
 		 if(Turn_Off(Voltage)!=0)               //===如果电池电压存在异常
 		 { 	
+		 	 VoltageFlag = 0;
 			return;
 		 }
 
@@ -732,7 +733,10 @@ void AiwacSupermarketCarControl(void)
 	else if (moveState == STATE_TURN_RIGHT) // 开始右转弯
 	{
 		
-		if ((carDistance.distanceF > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
+		if ((carDistance.distanceF > 0.7)
+			&& ((myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02)  
+				|| (carDistance.distanceL1 >= carDistance.distanceL2))
+				||(carDistance.distanceL1 >= GOALlDISTANCETOL))
 		{
 		
 			//send()  // 发送  转弯结束的情况
@@ -752,11 +756,15 @@ void AiwacSupermarketCarControl(void)
 	}
 	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
 	{
-		if ((carDistance.distanceB > 0.7) && (myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.01) )
+		if ((carDistance.distanceB > 0.7) 
+			&& ((myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02) 
+				||  (carDistance.distanceL1 <= carDistance.distanceL2))
+				||  (carDistance.distanceL2 >=GOALlDISTANCETOL))
 		{
 		
 			//send()  // 发送  转弯结束的情况
 			moveState = STATE_STOP;
+			printf("\r\n turing over!!!");
 		}
 		else {
 
@@ -1033,6 +1041,7 @@ void  AiwacSendState2Master(void)
 	// 需要打开
 
 	usart2_sendString(strSend,7 + jsonSize);
+	printf("\r\nAiwacSendState2Master:%s",strSend);
 	myfree(strJson);
 
 }
@@ -1051,10 +1060,11 @@ void  AiwacFeedback2Master(void)
 	cJSON *root;
 	char *strJson;
 	char strSend[300];
+	char feedMS[100];
 	
 	strSend[0] = '#';
 	strSend[1] = '!';
-
+	
 
 	root=cJSON_CreateObject();
 
@@ -1075,7 +1085,17 @@ void  AiwacFeedback2Master(void)
 	else
 		{
 			cJSON_AddNumberToObject(root, "errorCode", 199);
-			cJSON_AddStringToObject(root, "errorDesc", "the distance measurement  does not work!!!");
+			
+			strcpy(feedMS, "the distance measurement  does not work!!!");
+			
+			if (VoltageFlag == 0)
+				{
+					strcat(feedMS, "  the Voltage is too low!!!");
+
+				}
+
+			
+			cJSON_AddStringToObject(root, "errorDesc", feedMS);
 		}
 	
 

@@ -8,12 +8,12 @@
 // 区分上下车
 #define CAR_UP 1 
 #define CAR_DOWN 2
-#define CAR_ID CAR_UP 
+#define CAR_ID CAR_DOWN
 
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
-#define GOALlDISTANCETOL 70  // 毫米，小车中心离  轨道左侧的距离
+#define GOALlDISTANCETOL 100  // 毫米，小车中心离  轨道左侧的距离
 
 // 小车的运动状态  
 #define STATE_STOP 0
@@ -41,7 +41,7 @@ extern int timePrintf;
 #define CORRECTION_Z_BIG 40  // 小车自校正  Z方向速度      		快速矫正
 
 
-#define CORRECTION_Z_DISTANCE 6    // L1  L2  差多少开始矫正  平行
+#define CORRECTION_Z_DISTANCE 4    // L1  L2  差多少开始矫正  平行
 
 
 // 全局存储  小车测距的数据
@@ -58,7 +58,7 @@ extern	int Balance_Pwm,Velocity_Pwm,Turn_Pwm;
 extern struct CarDistance carDistance;
 extern int intoCurve;
 extern u8 jsonParseBuF[300], USART2_jsonParseBuF[300];
-
+extern int VoltageFlag;
 
 
 extern unsigned char const crc8_tab[256];

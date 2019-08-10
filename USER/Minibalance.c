@@ -95,7 +95,7 @@ int main(void)
 
 		
 
-		if (timeAiwac >= 16)  //16*5   80ms
+		if (timeAiwac >= 10)  //10*5   50ms
 		{
 			
 			// 解析并更新存储的 四个方向的距离
@@ -119,7 +119,7 @@ int main(void)
 
 
 
-		if (timePrintf >200)  // 1000ms
+		if (timePrintf >10)  // 500ms
 		{
 			printf("\r\n F:%f B：%f  L1:%f   L2:%f",carDistance.distanceF, carDistance.distanceB, carDistance.distanceL1, carDistance.distanceL2);
 			timePrintf =0;
