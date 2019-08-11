@@ -14,7 +14,7 @@
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
 #define GOALlDISTANCETOL 100  // 毫米，小车中心离  轨道左侧的距离
-
+#define OUT_TURING_DISTANCE 0.6  //出弯阶段的检测距离
 // 小车的运动状态  
 #define STATE_STOP 0
 #define STATE_STRAIGHT 1
