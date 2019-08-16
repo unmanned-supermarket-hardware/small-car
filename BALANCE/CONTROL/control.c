@@ -736,7 +736,7 @@ void AiwacSupermarketCarControl(void)
 		if ((carDistance.distanceF > OUT_TURING_DISTANCE)
 			&& ((myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02)  
 				|| (carDistance.distanceL1 >= carDistance.distanceL2))
-				||(carDistance.distanceL1 >= GOALlDISTANCETOL-4))
+				||(carDistance.distanceL1 >= GOALlDISTANCETOL-6))
 		{
 		
 			//send()  // 发送  转弯结束的情况
@@ -759,7 +759,7 @@ void AiwacSupermarketCarControl(void)
 		if ((carDistance.distanceB > OUT_TURING_DISTANCE) 
 			&& ((myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02) 
 				||  (carDistance.distanceL1 <= carDistance.distanceL2))
-				||  (carDistance.distanceL2 >=GOALlDISTANCETOL-4))
+				||  (carDistance.distanceL2 >=GOALlDISTANCETOL-6))
 		{
 		
 			//send()  // 发送  转弯结束的情况
