@@ -622,7 +622,13 @@ void AiwacPositionCorrection(void)
 
 	//小车离轨道边距的矫正
 	distanceDvalueToL = (carDistance.distanceL1 * 1000 + carDistance.distanceL2 * 1000)/2 - GOALlDISTANCETOL ; 
-	if (distanceDvalueToL >7) // 离轨道过远，超过10mm
+
+
+	if( (carDistance.distanceL1* 1000 < (GOALlDISTANCETOL-4)) ||  (carDistance.distanceL2* 1000 < (GOALlDISTANCETOL-4))) // 两个测距太近车
+		{
+			AIWAC_Move_Y = (CORRECTION_Y);  // 向轨道 离远， mm/s
+		}
+	else if (distanceDvalueToL >7) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
 		AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
@@ -723,7 +729,11 @@ void AiwacSupermarketCarControl(void)
 	*/
 
 	// X 前进速度  由  主控下发指令
-	AIWAC_Move_X = -(AIWAC_MOVE_Xtemp);
+	if (moveState > 0)
+	{
+		AIWAC_Move_X = -(AIWAC_MOVE_Xtemp);
+	}
+	
 	
 	if ((moveState == STATE_STOP) || (moveState == STATE_STRAIGHT)) // 停止或 直线运动
 	{

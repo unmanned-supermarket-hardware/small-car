@@ -8,12 +8,12 @@
 // 区分上下车
 #define CAR_UP 1 
 #define CAR_DOWN 2
-#define CAR_ID CAR_UP
+#define CAR_ID CAR_DOWN
 
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
-#define GOALlDISTANCETOL 110  // 毫米，小车中心离  轨道左侧的距离
+#define GOALlDISTANCETOL 100  // 毫米，小车中心离  轨道左侧的距离
 #define OUT_TURING_DISTANCE 0.6  //出弯阶段的检测距离
 // 小车的运动状态  
 #define STATE_STOP 0
