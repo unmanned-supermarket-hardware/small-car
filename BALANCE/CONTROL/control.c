@@ -620,15 +620,16 @@ void AiwacPositionCorrection(void)
 	}
 
 
+///////////////////////////////////////////////////////////
 	//小车离轨道边距的矫正
 	distanceDvalueToL = (carDistance.distanceL1 * 1000 + carDistance.distanceL2 * 1000)/2 - GOALlDISTANCETOL ; 
 
 
-	if( (carDistance.distanceL1* 1000 < (GOALlDISTANCETOL-4)) ||  (carDistance.distanceL2* 1000 < (GOALlDISTANCETOL-4))) // 两个测距太近车
+	if( (carDistance.distanceL1* 1000 < (GOALlDISTANCETOL-20)) ||  (carDistance.distanceL2* 1000 < (GOALlDISTANCETOL-20))) // 两个测距太近车
 		{
 			AIWAC_Move_Y = (CORRECTION_Y);  // 向轨道 离远， mm/s
 		}
-	else if (distanceDvalueToL >7) // 离轨道过远，超过10mm
+	else if (distanceDvalueToL > CORRECTION_Y_DISTANCE) // 离轨道过远，超过10mm
 	{
 		//  轨道  垂直方向  提供下速度
 		AIWAC_Move_Y = -(CORRECTION_Y);  // 向轨道 靠近， mm/s
@@ -646,7 +647,7 @@ void AiwacPositionCorrection(void)
 		}
 		PositionFlag1 = 0;
 	}
-	else if (distanceDvalueToL <-7) // 离轨道过近，太近  m
+	else if (distanceDvalueToL < -CORRECTION_Y_DISTANCE) // 离轨道过近，太近  m
 	{
 		printf("\r\n go far from  track");
 		if (distanceDvalueToL < -50)
@@ -670,6 +671,7 @@ void AiwacPositionCorrection(void)
 
 
 	
+	///////////////////////////////////////////////////////////
 
 	// 小车与轨道平行姿态矫正
 	if (carDistance.distanceL1 * 1000- carDistance.distanceL2 * 1000 >CORRECTION_Z_DISTANCE )  //该逆时针旋转
@@ -698,10 +700,12 @@ void AiwacPositionCorrection(void)
 	{
 
 		carDistance.leftPositionOK = 1;
-		printf("\r\n leftPositionOK");
+		printf("\r\n leftPosition OK");
 	}else
 	{
+		
 		carDistance.leftPositionOK = 0;
+		printf("\r\n leftPosition   not OK");
 	}
 }
 
@@ -744,13 +748,17 @@ void AiwacSupermarketCarControl(void)
 	{
 		
 		if ((carDistance.distanceF > OUT_TURING_DISTANCE)
-			&& ((myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02)  
-				|| (carDistance.distanceL1 >= carDistance.distanceL2))
-				||(carDistance.distanceL1 >= GOALlDISTANCETOL-6))
+			&& (
+					(myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02)  
+				|| (carDistance.distanceL1 >= carDistance.distanceL2)
+				|| (carDistance.distanceL1*1000 >= GOALlDISTANCETOL-OUT_TURING_GAP)
+				)
+			)
 		{
 		
 			//send()  // 发送  转弯结束的情况
 			moveState = STATE_STOP;
+			printf("\r\ncarDistance.distanceF:%f,OUT_TURING_DISTANCE:%d",carDistance.distanceF,OUT_TURING_DISTANCE);
 			printf("\r\n turing over!!!");
 			AIWACTuringTime = 0;
 		}
@@ -766,14 +774,18 @@ void AiwacSupermarketCarControl(void)
 	}
 	else if (moveState == STATE_TURN_LEFT)  // 向左转弯
 	{
-		if ((carDistance.distanceB > OUT_TURING_DISTANCE) 
-			&& ((myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02) 
-				||  (carDistance.distanceL1 <= carDistance.distanceL2))
-				||  (carDistance.distanceL2 >=GOALlDISTANCETOL-6))
+		if (	(carDistance.distanceB > OUT_TURING_DISTANCE) 
+			&& (
+					(myabs_double(carDistance.distanceL1 - carDistance.distanceL2) <0.02) 
+				||  (carDistance.distanceL1 <= carDistance.distanceL2)
+				||  (carDistance.distanceL2*1000 >= GOALlDISTANCETOL - OUT_TURING_GAP)
+				)
+			)
 		{
 		
 			//send()  // 发送  转弯结束的情况
 			moveState = STATE_STOP;
+			printf("\r\ncarDistance.distanceB:%f,OUT_TURING_DISTANCE:%d",carDistance.distanceB,OUT_TURING_DISTANCE);
 			printf("\r\n turing over!!!");
 		}
 		else {

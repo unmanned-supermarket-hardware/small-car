@@ -13,13 +13,20 @@
 #define PI 3.14159265
 #define ZHONGZHI 0 
 #define DIFFERENCE 100
-#define GOALlDISTANCETOL 100  // 毫米，小车中心离  轨道左侧的距离
-#define OUT_TURING_DISTANCE 0.6  //出弯阶段的检测距离
+
+#define GOALlDISTANCETOL 200  // 毫米，测距模块离  轨道左侧的距离
+#define OUT_TURING_DISTANCE 1  //出弯阶段的检测距离
+#define OUT_TURING_GAP 30 // 出弯时，前面测距模块的值  与 边距的差值
+#define CORRECTION_Z_DISTANCE 15    // L1  L2  差多少开始矫正  平行
+#define CORRECTION_Y_DISTANCE 15    //  小车边距矫正的误差
+
+
 // 小车的运动状态  
 #define STATE_STOP 0
 #define STATE_STRAIGHT 1
 #define STATE_TURN_RIGHT 2
 #define STATE_TURN_LEFT 3
+
 
 
 
@@ -34,14 +41,14 @@ extern int timePrintf;
 
 
 
-#define CORRECTION_Y 40  // 小车自校正  Y方向速度 
-#define CORRECTION_Z 30  // 小车自校正  Z方向速度 
-
+#define CORRECTION_Y 30  // 小车自校正  Y方向速度 
 #define CORRECTION_Y_BIG 40  // 小车自校正  Y方向速度     		快速矫正 
+
+#define CORRECTION_Z 30  // 小车自校正  Z方向速度 
 #define CORRECTION_Z_BIG 40  // 小车自校正  Z方向速度      		快速矫正
 
 
-#define CORRECTION_Z_DISTANCE 4    // L1  L2  差多少开始矫正  平行
+
 
 
 // 全局存储  小车测距的数据
